@@ -1,0 +1,46 @@
+#!/sbin/sh
+# ============================================================
+# 电压电量模拟服务 v5.4 - 安装器入口（KernelSU / Magisk 双支持）
+# v5.4：移除 Magisk 遗留强依赖，KernelSU 分支不再借用 Magisk 环境
+# ============================================================
+
+#################
+# Initialization
+#################
+
+umask 022
+
+# echo before loading util_functions
+ui_print() { echo "$1"; }
+
+require_new_magisk() {
+  ui_print "*******************************"
+  ui_print " 请使用 KernelSU 或 Magisk v20.4+ 安装"
+  ui_print " Please install with KernelSU or Magisk v20.4+"
+  ui_print "*******************************"
+  exit 1
+}
+
+#########################
+# Load util_functions.sh
+#########################
+
+OUTFD=$2
+ZIPFILE=$3
+
+mount /data 2>/dev/null
+
+# 双管理器分支：KernelSU 优先，Magisk 兜底
+if [ -f /data/adb/ksu/util_functions.sh ]; then
+  . /data/adb/ksu/util_functions.sh
+  ui_print "- 安装模式：KernelSU"
+elif [ -f /data/adb/magisk/util_functions.sh ]; then
+  . /data/adb/magisk/util_functions.sh
+  [ "$MAGISK_VER_CODE" -lt 20400 ] && require_new_magisk
+  ui_print "- 安装模式：Magisk"
+else
+  require_new_magisk
+fi
+
+install_module
+exit 0

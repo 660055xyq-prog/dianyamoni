@@ -1,0 +1,2955 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>电压电量模拟 · 琪露诺 v6.1</title>
+  <style>
+    :root {
+      --bg-deep: #091325;
+      --bg-mid: #0e203d;
+      --bg-aurora: #123254;
+      --card: rgba(11, 23, 44, 0.70);
+      --card-solid: #11213c;
+      --card-glass: rgba(10, 22, 42, 0.78);
+      --well: rgba(6, 14, 30, 0.54);
+      --text: #eef6ff;
+      --muted: #93aecb;
+      --gold: #e5cb94;
+      --gold-deep: #c9a663;
+      --gold-border: rgba(224, 196, 138, 0.36);
+      --gold-border-strong: rgba(235, 209, 154, 0.68);
+      --border: rgba(148, 197, 240, 0.18);
+      --primary: #5cc8ff;
+      --primary-bright: #8be2ff;
+      --primary-soft: rgba(92, 200, 255, 0.16);
+      --teal: #5eead4;
+      --teal-soft: rgba(94, 234, 212, 0.15);
+      --danger: #fb7185;
+      --danger-soft: rgba(251, 113, 133, 0.16);
+      --warn: #fbbf24;
+      --warn-soft: rgba(251, 191, 36, 0.16);
+      --ok: #4ade80;
+      --ok-soft: rgba(74, 222, 128, 0.16);
+      --ivory-grad: linear-gradient(180deg, #fcf6e6 0%, #e7cf9c 100%);
+      --ivory-text: #162238;
+      --radius: 16px;
+      --shadow: 0 8px 24px rgba(3, 9, 20, 0.45), inset 0 1px 0 rgba(162, 222, 255, 0.12);
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-spring: cubic-bezier(0.34, 1.35, 0.64, 1);
+      --font-serif: "Noto Serif SC", "Songti SC", "STSong", Georgia, serif;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background: var(--bg-deep);
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: calc(14px + env(safe-area-inset-top, 0px)) 14px calc(30px + env(safe-area-inset-bottom, 0px));
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      background: var(--bg-deep);
+      color: var(--text);
+      line-height: 1.5;
+      overscroll-behavior-y: contain;
+      position: relative;
+      z-index: 0;
+    }
+    /* 星空极光背景层（独立固定层，避免滚动重绘） */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(7, 16, 33, 0.42) 0%, rgba(10, 22, 43, 0.56) 48%, rgba(7, 15, 31, 0.78) 100%),
+        url("bg.webp") center 18% / cover no-repeat;
+    }
+
+    button, input, summary, .switch, .slider {
+      touch-action: manipulation;
+    }
+    .container { max-width: 540px; margin: 0 auto; }
+
+    /* ---- 顶部角色铭牌栏 ---- */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 4px 2px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .crest {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 35% 30%, rgba(125, 211, 252, 0.35), rgba(14, 34, 66, 0.92));
+      border: 1.5px solid var(--gold-border-strong);
+      box-shadow: 0 0 14px rgba(92, 200, 255, 0.28), inset 0 0 8px rgba(139, 226, 255, 0.2);
+    }
+    .crest svg { width: 22px; height: 22px; display: block; }
+    .title-wrap { min-width: 0; }
+    .title {
+      font-family: var(--font-serif);
+      font-size: 19px;
+      font-weight: 700;
+      margin: 0;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+      text-shadow: 0 1px 10px rgba(229, 203, 148, 0.25);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .ver-tag {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 999px;
+      color: var(--primary-bright);
+      background: rgba(92, 200, 255, 0.14);
+      border: 1px solid rgba(92, 200, 255, 0.35);
+      letter-spacing: 0;
+    }
+    .subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(15, 29, 53, 0.85);
+      border: 1px solid var(--gold-border);
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+    .badge.ok {
+      background: rgba(20, 62, 56, 0.72);
+      border-color: rgba(74, 222, 128, 0.45);
+      color: var(--ok);
+    }
+    .badge.off {
+      background: rgba(68, 22, 34, 0.72);
+      border-color: rgba(251, 113, 133, 0.45);
+      color: var(--danger);
+    }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 6px currentColor;
+    }
+
+    /* ---- Tab 栏（参考图顶部「角色/武器/圣遗物」金边象牙胶囊） ---- */
+    .tabbar {
+      position: sticky;
+      top: 8px;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      background: var(--card-glass);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--gold-border-strong);
+      border-radius: 999px;
+      padding: 5px;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 20px rgba(3, 10, 22, 0.52), inset 0 1px 0 rgba(255, 245, 220, 0.1);
+      --tab-idx: 0;
+    }
+    .tab-indicator {
+      position: absolute;
+      top: 5px;
+      bottom: 5px;
+      left: 5px;
+      width: calc((100% - 10px - 12px) / 3);
+      border-radius: 999px;
+      background: var(--ivory-grad);
+      box-shadow: 0 2px 10px rgba(235, 209, 154, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+      transform: translate3d(calc(var(--tab-idx) * (100% + 6px)), 0, 0);
+      transition: transform 0.26s var(--ease-out);
+      will-change: transform;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .tab-btn {
+      position: relative;
+      z-index: 1;
+      border: none;
+      background: transparent;
+      color: #c5d6ea;
+      border-radius: 999px;
+      padding: 8px 4px;
+      font-family: var(--font-serif);
+      font-size: 13.5px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      cursor: pointer;
+      transition: color 0.2s ease, transform 0.12s ease;
+    }
+    .tab-btn:active { transform: scale(0.96); }
+    .tab-btn.active { color: var(--ivory-text); }
+
+    .tab-pane { display: none; }
+    .tab-pane.show {
+      display: block;
+      animation: pane-in 0.2s var(--ease-out) both;
+    }
+    @keyframes pane-in {
+      from { opacity: 0; transform: translate3d(0, 6px, 0); }
+      to   { opacity: 1; transform: translate3d(0, 0, 0); }
+    }
+
+    /* ---- 琪露诺角色名片卡（复刻参考图左侧角色卡气质） ---- */
+    .hero-cirno {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background:
+        radial-gradient(circle at 18% 50%, rgba(92, 200, 255, 0.22), transparent 58%),
+        linear-gradient(135deg, rgba(14, 31, 58, 0.78) 0%, rgba(10, 23, 45, 0.74) 100%);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--gold-border-strong);
+      border-radius: var(--radius);
+      padding: 13px 14px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      contain: layout style;
+    }
+    .hero-cirno::before {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(229, 203, 148, 0.18);
+      border-radius: 12px;
+      pointer-events: none;
+    }
+    .cirno-avatar-wrap {
+      position: relative;
+      width: 82px;
+      height: 82px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cirno-avatar {
+      width: 84px;
+      height: 84px;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 4px 10px rgba(4, 12, 26, 0.65)) drop-shadow(0 0 10px rgba(92, 200, 255, 0.28));
+    }
+    .cirno-sticker-archive {
+      position: absolute;
+      right: 10px;
+      top: -26px;
+      height: 82px;
+      width: auto;
+      pointer-events: none;
+      user-select: none;
+      filter: drop-shadow(0 6px 12px rgba(4, 12, 26, 0.6));
+      z-index: 2;
+    }
+    .hero-val {
+      position: relative;
+      text-align: center;
+      padding: 6px 0 10px;
+    }
+    .cirno-sticker-settings {
+      position: absolute;
+      right: 2px;
+      top: -6px;
+      height: 98px;
+      width: auto;
+      pointer-events: none;
+      user-select: none;
+      filter: drop-shadow(0 6px 12px rgba(4, 12, 26, 0.58));
+      z-index: 1;
+    }
+    .card.has-perch {
+      margin-top: 22px;
+      contain: style;
+    }
+    .cirno-nine {
+      position: absolute;
+      right: -2px;
+      bottom: -2px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #2a4772, #12213b);
+      border: 1.5px solid var(--gold);
+      color: var(--gold);
+      font-family: var(--font-serif);
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+    .cirno-meta {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .cirno-name-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .cirno-name {
+      font-family: var(--font-serif);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .cirno-stars {
+      font-size: 11px;
+      color: #f6c963;
+      letter-spacing: 1px;
+      text-shadow: 0 0 8px rgba(246, 201, 99, 0.45);
+    }
+    .cirno-sub {
+      font-size: 11px;
+      color: #b7d3ec;
+      margin-top: 2px;
+    }
+    .cryo-bar-wrap {
+      margin-top: 7px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .cryo-bar-track {
+      flex: 1;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(7, 16, 33, 0.72);
+      border: 1px solid rgba(148, 197, 240, 0.22);
+      overflow: hidden;
+    }
+    .cryo-bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #38bdf8 0%, #67e8f9 65%, #e0f7ff 100%);
+      box-shadow: 0 0 10px rgba(103, 232, 249, 0.65);
+      transition: width 0.35s var(--ease-out);
+    }
+    .cryo-bar-val {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary-bright);
+      font-variant-numeric: tabular-nums;
+      min-width: 34px;
+      text-align: right;
+    }
+
+    /* ---- 命之座/属性风格金边卡片 ---- */
+    .card {
+      position: relative;
+      background: var(--card);
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius);
+      padding: 15px 15px 16px;
+      margin-bottom: 12px;
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      contain: layout style;
+    }
+    .card::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -4px;
+      width: 7px;
+      height: 7px;
+      background: var(--card-solid);
+      border-right: 1px solid var(--gold-border-strong);
+      border-bottom: 1px solid var(--gold-border-strong);
+      transform: translateX(-50%) rotate(45deg);
+      pointer-events: none;
+    }
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(229, 203, 148, 0.16);
+      gap: 8px;
+    }
+    .card-head.sub-note {
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-bottom: 6px;
+    }
+    .card-title {
+      font-family: var(--font-serif);
+      font-size: 15px;
+      font-weight: 700;
+      margin: 0;
+      color: var(--gold);
+      letter-spacing: 0.6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .card-title::before {
+      content: "✦";
+      font-size: 11px;
+      color: var(--gold-deep);
+      opacity: 0.9;
+    }
+
+    .btn-mini {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border: 1px solid var(--gold-border);
+      background: rgba(11, 24, 46, 0.7);
+      color: #d6e6f7;
+      border-radius: 999px;
+      padding: 4px 11px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.15s ease;
+    }
+    .btn-mini.active {
+      background: var(--ivory-grad);
+      border-color: var(--gold);
+      color: var(--ivory-text);
+      font-weight: 700;
+    }
+    .btn-mini:active { transform: scale(0.95); opacity: 0.8; }
+
+    /* ---- 异步加载态 ---- */
+    .is-loading {
+      pointer-events: none;
+      opacity: 0.72 !important;
+    }
+    .is-loading::before {
+      content: "";
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+    .btn-mini.is-loading::before {
+      width: 10px;
+      height: 10px;
+      border-width: 1.6px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .rescue-card {
+      display: none;
+      background: rgba(68, 20, 34, 0.78);
+      border: 1px solid rgba(251, 113, 133, 0.65);
+      border-radius: var(--radius);
+      padding: 14px 15px;
+      margin-bottom: 12px;
+      box-shadow: 0 6px 18px rgba(45, 8, 18, 0.45);
+      contain: layout style;
+    }
+    .rescue-card.show {
+      display: block;
+      animation: pane-in 0.2s var(--ease-out) both;
+    }
+    .rescue-card.snoozed {
+      background: rgba(66, 46, 16, 0.76);
+      border-color: rgba(251, 191, 36, 0.6);
+    }
+    .rescue-title { font-size: 14px; font-weight: 700; color: var(--danger); margin: 0 0 6px; }
+    .rescue-card.snoozed .rescue-title { color: var(--warn); }
+    .rescue-desc { font-size: 12px; color: var(--text); margin-bottom: 10px; }
+    .rescue-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .btn-rescue {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 38px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(180deg, #f43f5e 0%, #be123c 100%);
+      color: #fff;
+      transition: transform 0.12s ease, opacity 0.15s ease;
+    }
+    .btn-rescue:active { transform: scale(0.97); opacity: 0.85; }
+    .btn-rescue.warn {
+      background: var(--ivory-grad);
+      border-color: var(--gold);
+      color: var(--ivory-text);
+    }
+    .btn-rescue.sub {
+      background: rgba(12, 26, 49, 0.85);
+      color: var(--text);
+      border: 1px solid var(--gold-border);
+    }
+
+    /* ---- 属性数值格（参考图「属性」面板蓝光数字） ---- */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .metric {
+      background: var(--well);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 6px;
+      text-align: center;
+    }
+    .metric-label { font-size: 11px; color: var(--muted); }
+    .metric-val {
+      font-size: 16px;
+      font-weight: 800;
+      margin-top: 3px;
+      color: var(--primary-bright);
+      text-shadow: 0 0 10px rgba(92, 200, 255, 0.32);
+      font-variant-numeric: tabular-nums;
+    }
+    .metric-sub { font-size: 10px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+    .status-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .pill {
+      background: var(--well);
+      border: 1px solid rgba(148, 197, 240, 0.14);
+      border-radius: 8px;
+      padding: 4px 8px;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+    .pill.ok { background: var(--ok-soft); border-color: rgba(74, 222, 128, 0.3); color: var(--ok); font-weight: 600; }
+    .pill.warn { background: var(--warn-soft); border-color: rgba(251, 191, 36, 0.32); color: var(--warn); font-weight: 600; }
+    .pill.danger { background: var(--danger-soft); border-color: rgba(251, 113, 133, 0.35); color: var(--danger); font-weight: 600; }
+    .pill.teal { background: var(--teal-soft); border-color: rgba(94, 234, 212, 0.35); color: var(--teal); font-weight: 600; }
+
+    /* ---- 事件记录 ---- */
+    .events { margin-top: 4px; }
+    .event-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 4px;
+      border-bottom: 1px solid rgba(148, 197, 240, 0.12);
+      font-size: 12px;
+    }
+    .event-item:last-child { border-bottom: none; }
+    .event-badge {
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 8px;
+      padding: 2px 7px;
+      background: var(--well);
+      border: 1px solid rgba(148, 197, 240, 0.16);
+      color: #c2d6eb;
+      white-space: nowrap;
+      margin-top: 1px;
+    }
+    .event-badge.teal { background: var(--teal-soft); border-color: rgba(94, 234, 212, 0.32); color: var(--teal); }
+    .event-badge.danger { background: var(--danger-soft); border-color: rgba(251, 113, 133, 0.35); color: var(--danger); }
+    .event-badge.warn { background: var(--warn-soft); border-color: rgba(251, 191, 36, 0.32); color: var(--warn); }
+    .event-badge.primary { background: var(--primary-soft); border-color: rgba(92, 200, 255, 0.35); color: var(--primary-bright); }
+    .event-body { flex: 1; min-width: 0; }
+    .event-msg { color: var(--text); word-break: break-all; }
+    .event-time { color: var(--muted); font-size: 10px; margin-top: 1px; }
+    .event-item.event-new { animation: event-in 0.55s var(--ease-out); border-radius: 8px; }
+    @keyframes event-in {
+      from { opacity: 0; transform: translate3d(0, -4px, 0); background: var(--primary-soft); }
+      to   { opacity: 1; transform: translate3d(0, 0, 0); background: transparent; }
+    }
+    .event-empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 12px 0;
+    }
+
+    .bb-table-wrap {
+      margin-top: 10px;
+      border: 1px solid var(--gold-border);
+      border-radius: 10px;
+      overflow: hidden;
+      display: none;
+    }
+    .bb-table-wrap.show { display: block; }
+    .bb-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .bb-table th, .bb-table td {
+      padding: 6px 8px;
+      text-align: center;
+      border-bottom: 1px solid rgba(148, 197, 240, 0.12);
+      font-variant-numeric: tabular-nums;
+    }
+    .bb-table th { background: var(--well); color: var(--gold); font-weight: 600; }
+    .bb-table tr:last-child td { border-bottom: none; }
+
+    /* ---- 场景预设（参考图「天赋」金环图标感） ---- */
+    .scene-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .scene-btn {
+      border: 1px solid var(--border);
+      background: var(--well);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+    }
+    .scene-btn:active { transform: scale(0.96); }
+    .scene-btn.active {
+      background: linear-gradient(180deg, rgba(92, 200, 255, 0.22), rgba(20, 46, 82, 0.82));
+      border-color: var(--gold-border-strong);
+      color: var(--gold);
+      box-shadow: 0 0 14px rgba(92, 200, 255, 0.22);
+    }
+    .scene-name { font-family: var(--font-serif); font-size: 13.5px; font-weight: 700; }
+    .scene-desc { font-size: 10px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+    .scene-btn.active .scene-desc { color: var(--primary-bright); }
+
+    .chart-box {
+      width: 100%;
+      background: var(--well);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px 6px;
+    }
+    .chart-svg { width: 100%; height: 162px; display: block; }
+    .chart-empty {
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      padding: 0 12px;
+    }
+    .chart-legend {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 8px;
+      padding: 0 4px;
+    }
+
+    .hero-num {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--primary-bright);
+      letter-spacing: -0.5px;
+      text-shadow: 0 0 18px rgba(92, 200, 255, 0.42);
+      font-variant-numeric: tabular-nums;
+    }
+    .hero-uv { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+    .stepper { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .step-btn {
+      flex: 0 0 66px;
+      height: 42px;
+      border-radius: 12px;
+      border: 1px solid var(--gold-border);
+      background: var(--well);
+      color: var(--gold);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: transform 0.1s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+    .step-btn:active, .step-btn.holding {
+      transform: scale(0.95);
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      color: var(--primary-bright);
+    }
+    .input-wrap { flex: 1; position: relative; }
+    .input-wrap input {
+      width: 100%;
+      height: 42px;
+      border-radius: 12px;
+      border: 1px solid var(--gold-border);
+      background: var(--well);
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      padding: 0 28px 0 10px;
+      outline: none;
+      font-variant-numeric: tabular-nums;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .input-wrap input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+    .input-unit {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gold);
+      font-size: 14px;
+      font-weight: 700;
+      pointer-events: none;
+    }
+
+    /* ---- 冰晶定制滑块 ---- */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 30px;
+      margin: 2px 0 10px;
+      background: transparent;
+      touch-action: pan-y;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(
+        to right,
+        #38bdf8 0%,
+        #8be2ff var(--range-pct, 46.67%),
+        rgba(148, 197, 240, 0.2) var(--range-pct, 46.67%),
+        rgba(148, 197, 240, 0.2) 100%
+      );
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #ffffff 0%, #c8f2ff 65%, #5cc8ff 100%);
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 12px rgba(92, 200, 255, 0.65), 0 2px 6px rgba(0, 0, 0, 0.45);
+      margin-top: -8px;
+      transition: transform 0.12s var(--ease-spring), box-shadow 0.15s ease;
+    }
+    input[type="range"]:active::-webkit-slider-thumb {
+      transform: scale(1.16);
+      box-shadow: 0 0 0 6px var(--primary-soft), 0 0 16px rgba(139, 226, 255, 0.85);
+    }
+
+    .presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .chip {
+      border: 1px solid var(--border);
+      background: var(--well);
+      color: #d2e4f7;
+      border-radius: 10px;
+      padding: 8px 4px;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      font-variant-numeric: tabular-nums;
+      transition: transform 0.12s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+    .chip:active { transform: scale(0.95); }
+    .chip.active {
+      background: var(--primary-soft);
+      border-color: var(--gold-border-strong);
+      color: var(--gold);
+      box-shadow: 0 0 10px rgba(92, 200, 255, 0.2);
+    }
+
+    .cal-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: var(--well);
+      border: 1px solid var(--border);
+    }
+    .cal-info { font-size: 12px; color: var(--muted); line-height: 1.45; }
+    .cal-info strong { color: var(--primary-bright); }
+    .btn-cal {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      flex-shrink: 0;
+      border: 1px solid var(--gold-border-strong);
+      background: rgba(92, 200, 255, 0.14);
+      color: var(--gold);
+      border-radius: 999px;
+      padding: 8px 13px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.15s ease;
+    }
+    .btn-cal:active { transform: scale(0.96); opacity: 0.78; }
+
+    .link-preview {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(13, 148, 136, 0.14);
+      border: 1px solid rgba(94, 234, 212, 0.28);
+      font-size: 12px;
+      color: var(--teal);
+      line-height: 1.6;
+    }
+    .link-preview strong { font-weight: 700; color: #ccfbf1; font-variant-numeric: tabular-nums; }
+
+    .seg {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: var(--well);
+      border: 1px solid var(--border);
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+    .seg.three { grid-template-columns: repeat(3, 1fr); }
+    .seg-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 9px;
+      padding: 8px 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .seg-btn:active { transform: scale(0.96); }
+    .seg-btn.active {
+      background: var(--ivory-grad);
+      color: var(--ivory-text);
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(235, 209, 154, 0.26);
+    }
+    .seg-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+
+    details.adv-card {
+      background: var(--card);
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      contain: layout style;
+    }
+    details.adv-card summary {
+      list-style: none;
+      padding: 15px 16px;
+      font-family: var(--font-serif);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.15s ease;
+    }
+    details.adv-card summary::-webkit-details-marker { display: none; }
+    details.adv-card summary .arrow {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .adv-body {
+      padding: 0 16px 14px;
+      border-top: 1px solid rgba(229, 203, 148, 0.18);
+    }
+    details.adv-card[open] .adv-body {
+      animation: pane-in 0.2s var(--ease-out) both;
+    }
+
+    .banner {
+      display: none;
+      margin-top: 4px;
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      border: 1px solid transparent;
+    }
+    .banner.warn { background: var(--warn-soft); border-color: rgba(251, 191, 36, 0.4); color: var(--warn); }
+    .banner.err { background: var(--danger-soft); border-color: rgba(251, 113, 133, 0.42); color: var(--danger); }
+    .banner.show { display: block; }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(148, 197, 240, 0.12);
+      gap: 12px;
+    }
+    .row:last-child { border-bottom: none; padding-bottom: 0; }
+    .row-label { font-size: 13px; font-weight: 600; color: var(--text); }
+    .row-desc { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .row-input {
+      width: 92px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--gold-border);
+      background: var(--well);
+      color: var(--primary-bright);
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+      font-variant-numeric: tabular-nums;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .row-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+    .row-input.small { width: 58px; }
+
+    .switch {
+      position: relative;
+      width: 46px;
+      height: 26px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: rgba(148, 197, 240, 0.22);
+      border: 1px solid rgba(148, 197, 240, 0.25);
+      border-radius: 999px;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+      cursor: pointer;
+    }
+    .slider:before {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 3px;
+      top: 3px;
+      background: #f8fafc;
+      border-radius: 50%;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+      transition: transform 0.22s var(--ease-spring);
+      will-change: transform;
+    }
+    .switch input:checked + .slider {
+      background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+      border-color: var(--gold-border-strong);
+    }
+    .switch input:checked + .slider:before { transform: translate3d(20px, 0, 0); }
+
+    /* ---- 象牙金主操作按钮（参考图「升级」「详细信息」） ---- */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      height: 46px;
+      border: 1px solid #f7e4bc;
+      border-radius: 999px;
+      background: var(--ivory-grad);
+      color: var(--ivory-text);
+      font-family: var(--font-serif);
+      font-size: 15.5px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      cursor: pointer;
+      margin-bottom: 10px;
+      box-shadow: 0 6px 18px rgba(235, 209, 154, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      transition: transform 0.12s ease, opacity 0.15s ease;
+    }
+    .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+    .btn-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+    .btn-sec {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      height: 38px;
+      border: 1px solid var(--gold-border);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0 4px;
+      transition: transform 0.12s ease, background-color 0.15s ease, opacity 0.15s ease;
+    }
+    .btn-sec.danger { color: var(--danger); border-color: rgba(251, 113, 133, 0.42); }
+    .btn-sec:active { transform: scale(0.96); opacity: 0.8; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+      transform: translate3d(-50%, 16px, 0);
+      background: rgba(11, 24, 46, 0.95);
+      border: 1px solid var(--gold-border-strong);
+      color: var(--gold);
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.22s var(--ease-out), opacity 0.22s ease;
+      will-change: transform, opacity;
+      max-width: 88vw;
+      text-align: center;
+      z-index: 99;
+    }
+    .toast.show { opacity: 1; transform: translate3d(-50%, 0, 0); }
+
+    /* ---- v5.4 高级设置折叠 / 节点提示 ---- */
+    details#advSet summary:active { background: rgba(92, 200, 255, 0.08); }
+    details#advSet .arrow { display: inline-block; transition: transform 0.22s var(--ease-out); }
+    details#advSet[open] .arrow { transform: rotate(180deg); }
+    .adv-sec-title {
+      margin: 10px 0 6px;
+      font-size: 12px;
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .node-hint {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--warn);
+      line-height: 1.4;
+    }
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <div class="crest" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07" stroke="#8be2ff" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M12 5.2l2.1 2.1L12 9.4 9.9 7.3 12 5.2zm0 9.4l2.1 2.1L12 18.8l-2.1-2.1 2.1-2.1zM5.2 12l2.1-2.1L9.4 12l-2.1 2.1L5.2 12zm9.4 0l2.1-2.1L18.8 12l-2.1 2.1-2.1-2.1z" fill="#e5cb94" opacity="0.9"/>
+            <circle cx="12" cy="12" r="2.2" fill="#fcf6e6"/>
+          </svg>
+        </div>
+        <div class="title-wrap">
+          <h1 class="title">琪露诺 · 电压模拟 <span class="ver-tag">v6.1</span></h1>
+          <div class="subtitle">作者：影儿 · 极速断点校准 · 盲操续命 · 参数联动</div>
+        </div>
+      </div>
+      <div id="serviceBadge" class="badge"><span class="dot"></span><span id="serviceText">检测中</span></div>
+    </div>
+
+    <nav class="tabbar" id="tabbar">
+      <div class="tab-indicator" aria-hidden="true"></div>
+      <button class="tab-btn active" data-tab="home" onclick="switchTab('home', this)">主页概览</button>
+      <button class="tab-btn" data-tab="archive" onclick="switchTab('archive', this)">电池档案</button>
+      <button class="tab-btn" data-tab="settings" onclick="switchTab('settings', this)">设置</button>
+    </nav>
+
+    <!-- ==================== 主页概览 ==================== -->
+    <section id="pane-home" class="tab-pane show">
+      <div id="envBanner" class="banner err">
+        未检测到 KernelSU WebUI 接口（window.ksu）。请在 KernelSU、APatch 或 WebUI-X 管理器中打开此页面。
+      </div>
+
+      <div class="hero-cirno">
+        <div class="cirno-avatar-wrap">
+          <img class="cirno-avatar" src="cirno_stretch.webp" alt="琪露诺" />
+          <span class="cirno-nine" title="最强冰精 ⑨">9</span>
+        </div>
+        <div class="cirno-meta">
+          <div class="cirno-name-row">
+            <span class="cirno-name">❄ 琪露诺</span>
+            <span class="cirno-stars" aria-label="五星">★★★★★</span>
+          </div>
+          <div class="cirno-sub">湖上冰精 · 冰结电压守护中</div>
+          <div class="cryo-bar-wrap">
+            <div class="cryo-bar-track"><div class="cryo-bar-fill" id="cirnoCapBar"></div></div>
+            <span class="cryo-bar-val" id="cirnoCapTxt">--%</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="rescueCard" class="rescue-card">
+        <div class="rescue-title" id="rescueTitle">⚠️ 正在关机倒计时</div>
+        <div class="rescue-desc" id="rescueDesc">若正在结账或处理急事，可临时延后或取消本次自动关机。</div>
+        <div class="rescue-btns" id="rescueBtns"></div>
+      </div>
+
+      <div id="bbSuggestCard" class="rescue-card snoozed">
+        <div class="rescue-title" id="bbSuggestTitle">🔎 疑似硬断电复盘建议</div>
+        <div class="rescue-desc" id="bbSuggestDesc">--</div>
+        <div class="rescue-btns">
+          <button class="btn-rescue warn" onclick="runAction('apply_bb_floor', this)">采纳建议红线</button>
+          <button class="btn-rescue sub" onclick="runAction('dismiss_bb_floor', this)">忽略本次</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">实时状态</h2>
+          <button class="btn-mini" onclick="refreshAll(true, this)">立即刷新</button>
+        </div>
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-label">当前电压</div>
+            <div class="metric-val" id="mVoltage">--</div>
+            <div class="metric-sub" id="mCompV">补偿 --</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">界面 / 系统电量</div>
+            <div class="metric-val" id="mCap">--</div>
+            <div class="metric-sub" id="mOcv">静置 --</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">电流 / 温度</div>
+            <div class="metric-val" id="mCurrent" style="font-size:14px;">--</div>
+            <div class="metric-sub" id="mTemp">温度 --</div>
+          </div>
+        </div>
+        <div class="status-strip">
+          <span class="pill" id="pillConn">连接 --</span>
+          <span class="pill" id="pillUptime">运行 --</span>
+          <span class="pill" id="pillStreak">连击 0/2</span>
+          <span class="pill" id="pillKey" title="关机倒计时期间按音量键可立即延后关机">按键续命 --</span>
+          <span class="pill danger" id="pillDanger" style="display:none;">黑匣子高频记录中</span>
+          <span class="pill teal" id="pillMaxLearn" style="display:none;">满电学习状态</span>
+          <span class="pill ok" id="pillGrace" style="display:none;">开机保护中</span>
+          <span class="pill" id="pillWatchdog">看门狗 --</span>
+          <span class="pill" id="pillBatNode">电压节点 --</span>
+          <span class="pill" id="pillLastExit">无崩溃记录</span>
+        </div>
+        <div class="node-hint" id="batNodeHint" style="display:none;">电压节点不可读：可向模块目录写 .batnode_override 指定节点目录</div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">最近事件记录</h2>
+          <button class="btn-mini" onclick="loadEvents(this)">刷新</button>
+        </div>
+        <div class="card-head sub-note">
+          <span style="font-size:11px;color:var(--muted);">仅显示最近 6 条：满电学习、断电复盘、急速关机、续命等都会记录在这里，后台做了什么一眼看清。<span id="eventCount" style="color:var(--primary-bright);font-weight:600;"></span></span>
+        </div>
+        <div class="events" id="eventsList">
+          <div class="event-empty">加载中...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 电池档案 ==================== -->
+    <section id="pane-archive" class="tab-pane">
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">电压趋势（近 12 小时）</h2>
+          <div style="display:flex;gap:4px;">
+            <button id="win2h" class="btn-mini active" onclick="setChartWindow(60)">2小时</button>
+            <button id="win12h" class="btn-mini" onclick="setChartWindow(360)">12小时</button>
+          </div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-empty" id="chartEmpty">每 2 分钟自动记录 1 个采样点，运行数分钟后自动绘制趋势图</div>
+          <svg id="chartSvg" class="chart-svg" viewBox="0 0 320 162" style="display:none;"></svg>
+        </div>
+        <div class="chart-legend">
+          <span><span style="color:var(--primary-bright);font-weight:700;">━</span> 当前电压</span>
+          <span><span style="color:var(--teal);font-weight:700;">━</span> 补偿电压（估算真实电压）</span>
+          <span><span style="color:var(--danger);font-weight:700;">╌</span> 关机红线</span>
+          <span id="chartRange">--</span>
+        </div>
+      </div>
+
+      <div class="card has-perch">
+        <img class="cirno-sticker-archive" src="cirno_sit.webp" alt="" aria-hidden="true" />
+        <div class="card-head">
+          <h2 class="card-title">一键引导校准</h2>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.6;">
+          <strong>v6.1 极速断点校准（抗毛刺）：</strong>开启即采，无需专门充满放空；支持中途插电自动保存断点，
+          累计放掉 <strong>≥25%</strong> 电量（约 20~40 分钟）即可用先验拟合 + PAVA 抗毛刺生成专属曲线。
+        </div>
+        <div id="calibStatus" class="link-preview" style="background:var(--well);border-color:var(--border);color:var(--text);">--</div>
+        <div id="calibBtns" class="rescue-btns" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">自学习数据体检</h2>
+          <button class="btn-mini" onclick="runAction('reset_learned', this)">重置学习</button>
+        </div>
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-label">常规 / 低电内阻</div>
+            <div class="metric-val" id="dRes" style="font-size:14px;">--</div>
+            <div class="metric-sub" id="dResSub">满3样本启用补偿</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">当前关机红线</div>
+            <div class="metric-val" id="dEffSv" style="color:var(--danger);text-shadow:0 0 10px rgba(251,113,133,0.35);">--</div>
+            <div class="metric-sub" id="dEffSub">基础 --</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">满电电压学习</div>
+            <div class="metric-val" id="dMaxLearn">--</div>
+            <div class="metric-sub" id="dMaxSub">累计 0 次</div>
+          </div>
+        </div>
+        <div class="status-strip">
+          <span class="pill" id="pillCell">电芯 1S</span>
+          <span class="pill" id="pillCurrHealth">电流: 探测中</span>
+          <span class="pill" id="pillBlHealth">背光: --</span>
+          <span class="pill" id="pillOcvHealth">静置电压护栏: --</span>
+          <span class="pill" id="pillLog">日志 0 KB</span>
+        </div>
+        <div id="bbTableWrap" class="bb-table-wrap">
+          <table class="bb-table">
+            <thead>
+              <tr><th>硬断电时间</th><th>断电时电压</th><th>电流</th><th>温度</th></tr>
+            </thead>
+            <tbody id="bbTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 设置 ==================== -->
+    <section id="pane-settings" class="tab-pane">
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">自动关机红线</h2>
+          <span style="font-size:12px;color:var(--muted);">2.85V ~ 3.60V</span>
+        </div>
+        <div class="hero-val">
+          <img class="cirno-sticker-settings" src="cirno_stand.webp" alt="" aria-hidden="true" />
+          <div class="hero-num"><span id="svDisplay">3.20</span> V</div>
+          <div class="hero-uv" id="svUvDisplay">3200000 uV（实际生效以动态红线为准）</div>
+        </div>
+        <div class="stepper">
+          <button class="step-btn" id="btnStepDown" type="button">-0.01</button>
+          <div class="input-wrap">
+            <input id="svInput" type="number" inputmode="decimal" step="0.01" min="2.85" max="3.60" value="3.20" oninput="onSvInput()" />
+            <span class="input-unit">V</span>
+          </div>
+          <button class="step-btn" id="btnStepUp" type="button">+0.01</button>
+        </div>
+        <input id="svRange" type="range" min="2850000" max="3600000" step="10000" value="3200000" oninput="onSvRange()" />
+        <div class="presets" id="presetGrid">
+          <button class="chip" data-uv="3000000" onclick="pickPreset(3000000)">3.00V</button>
+          <button class="chip" data-uv="3050000" onclick="pickPreset(3050000)">3.05V</button>
+          <button class="chip" data-uv="3100000" onclick="pickPreset(3100000)">3.10V</button>
+          <button class="chip" data-uv="3150000" onclick="pickPreset(3150000)">3.15V</button>
+          <button class="chip" data-uv="3200000" onclick="pickPreset(3200000)">3.20V</button>
+          <button class="chip" data-uv="3250000" onclick="pickPreset(3250000)">3.25V</button>
+          <button class="chip" data-uv="3300000" onclick="pickPreset(3300000)">3.30V</button>
+          <button class="chip" data-uv="3350000" onclick="pickPreset(3350000)">3.35V</button>
+        </div>
+        <div class="link-preview" id="linkPreview">--</div>
+        <div class="cal-bar">
+          <div class="cal-info">
+            满电电压（100%）：<strong id="calRangeTxt">--</strong><br/>
+            饱充后自动学习；也可满电静置后手动校准
+          </div>
+          <button class="btn-cal" onclick="calibrateFull(this)">手动校准 100%</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">一键场景预设</h2>
+          <span style="font-size:11px;color:var(--muted);">点选后点底部保存</span>
+        </div>
+        <div class="scene-grid">
+          <button id="scPower" class="scene-btn" onclick="applyScene('power')">
+            <div class="scene-name">极致省电</div>
+            <div class="scene-desc">亮20s / 息120s<br/>锂电曲线</div>
+          </button>
+          <button id="scBalanced" class="scene-btn active" onclick="applyScene('balanced')">
+            <div class="scene-name">日常均衡</div>
+            <div class="scene-desc">亮10s / 息60s<br/>压降补偿</div>
+          </button>
+          <button id="scFast" class="scene-btn" onclick="applyScene('fast')">
+            <div class="scene-name">跟手实时</div>
+            <div class="scene-desc">亮5s / 息20s<br/>1s快响应</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">充电与显示</h2>
+        </div>
+        <div style="margin:6px 0;font-size:12px;color:var(--gold);font-weight:600;">充电时电量怎么显示</div>
+        <div class="seg three">
+          <button id="chgSmooth" class="seg-btn active" onclick="setChargeMode(0)">平滑衔接</button>
+          <button id="chgLegacy" class="seg-btn" onclick="setChargeMode(1)">跟随系统</button>
+          <button id="chgNative" class="seg-btn" onclick="setChargeMode(2)">直接透传</button>
+        </div>
+        <div style="margin:10px 0 6px;font-size:12px;color:var(--gold);font-weight:600;">电量计算方式</div>
+        <div class="seg three">
+          <button id="modeLinear" class="seg-btn active" onclick="setCurveMode(0)">直线估算</button>
+          <button id="modeCurve" class="seg-btn" onclick="setCurveMode(1)">锂电特性曲线</button>
+          <button id="modeCustom" class="seg-btn" onclick="setCurveMode(2)">专属校准曲线</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">保护与自动学习</h2>
+        </div>
+        <div class="row">
+          <div>
+            <div class="row-label">音量键盲操续命</div>
+            <div class="row-desc">关机倒计时期间按音量键，立即延后下方时长（<span id="keyNodeTxt">节点探测中</span>）</div>
+          </div>
+          <label class="switch">
+            <input id="keySnoozeToggle" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="row">
+          <div>
+            <div class="row-label">防黑屏急速关机</div>
+            <div class="row-desc">倒计时期间电压继续告急时，提前到 10 秒关机，防硬件直接断电</div>
+          </div>
+          <label class="switch">
+            <input id="rapidShutdownToggle" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="row">
+          <div>
+            <div class="row-label">重负载压降补偿</div>
+            <div class="row-desc">大电流时电压会被拉低，开启后显示更接近真实电压（带静置电压护栏）</div>
+          </div>
+          <label class="switch">
+            <input id="irCompToggle" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="row">
+          <div>
+            <div class="row-label">自动学习满电电压</div>
+            <div class="row-desc">饱充累积 3 分钟 + 拔线静置采样，自动贴合你的电池</div>
+          </div>
+          <label class="switch">
+            <input id="autoMaxToggle" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="row">
+          <div>
+            <div class="row-label">断电复盘（黑匣子）</div>
+            <div class="row-desc">检测上次是否硬断电，并建议更安全的关机红线</div>
+          </div>
+          <label class="switch">
+            <input id="autoMinToggle" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="row">
+          <div>
+            <div class="row-label">复盘结论自动生效</div>
+            <div class="row-desc">关闭（推荐）=弹出建议由你确认；开启=自动静默抬高红线</div>
+          </div>
+          <label class="switch">
+            <input id="bbAutoApplyToggle" type="checkbox" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="row">
+          <div>
+            <div class="row-label">低温自动提高保护线</div>
+            <div class="row-desc">15°C 以下连续线性抬升（最高 +0.12V，带 1.5°C 回温迟滞防抖）</div>
+          </div>
+          <label class="switch">
+            <input id="tempCompToggle" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="row">
+          <div>
+            <div class="row-label">电量缓慢回弹显示</div>
+            <div class="row-desc">高负载结束后，电量小幅回升时缓慢放行，避免跳变</div>
+          </div>
+          <label class="switch">
+            <input id="reboundToggle" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="row">
+          <div>
+            <div class="row-label">详细电压日志</div>
+            <div class="row-desc">记录内阻/静置电压/满电进度（2MB 自动轮转）</div>
+          </div>
+          <label class="switch">
+            <input id="batLogToggle" type="checkbox" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <details class="adv-card" id="advSet">
+        <summary>
+          <span>✦ 高级设置</span>
+          <span class="arrow">点击展开 / 收起 ▾</span>
+        </summary>
+        <div class="adv-body">
+          <div class="row">
+            <div>
+              <div class="row-label">专家模式（手动改联动参数）</div>
+              <div class="row-desc">默认关闭：空电电压和低电提醒随关机红线自动联动，基本不会报错</div>
+            </div>
+            <label class="switch">
+              <input id="expertToggle" type="checkbox" onchange="onExpertToggle()" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div id="expertInputs" style="display:none;">
+            <div class="row">
+              <div>
+                <div class="row-label">空电电压（0%）</div>
+                <div class="row-desc">手动模式下的电量标尺下限（2.85~3.60V）</div>
+              </div>
+              <input id="minVInput" class="row-input small" type="number" inputmode="decimal" step="0.01" min="2.85" max="3.60" value="3.18" />
+            </div>
+            <div class="row">
+              <div>
+                <div class="row-label">低电提醒区间</div>
+                <div class="row-desc">低于上限开始提醒，下限为预警区下沿（单位 V）</div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <input id="lowMaxInput" class="row-input small" type="number" inputmode="decimal" step="0.01" min="2.90" max="3.80" value="3.35" />
+                <input id="lowMinInput" class="row-input small" type="number" inputmode="decimal" step="0.01" min="2.85" max="3.70" value="3.25" />
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <div class="row-label">满电电压（100%）</div>
+              <div class="row-desc">电量标尺上限（3.90~4.65V），可被自动学习更新</div>
+            </div>
+            <input id="maxVInput" class="row-input small" type="number" inputmode="decimal" step="0.01" min="3.90" max="4.65" value="4.45" />
+          </div>
+
+          <div class="row">
+            <div>
+              <div class="row-label">关机倒计时 / 确认次数</div>
+              <div class="row-desc">低于红线连续几次才关机 (1~5)，倒计时 (10~600s)</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <input id="offTimeInput" class="row-input" style="width:54px;" type="number" inputmode="numeric" min="10" max="600" value="45" />
+              <input id="confirmInput" class="row-input" style="width:44px;" type="number" inputmode="numeric" min="1" max="5" value="2" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <div class="row-label">亮屏采样周期 / 响应步长</div>
+              <div class="row-desc">亮屏时多久刷新一次 (5~60s)，充电器变化响应速度 (1~10s)</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <input id="timeInput" class="row-input" style="width:54px;" type="number" inputmode="numeric" min="5" max="60" value="10" />
+              <input id="pollStepInput" class="row-input" style="width:44px;" type="number" inputmode="numeric" min="1" max="10" value="2" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <div class="row-label">息屏休眠 / 开机保护期</div>
+              <div class="row-desc">息屏时多久检查一次 (10~300s)，开机保护时长 (0~600s)</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <input id="screenOffInput" class="row-input" style="width:54px;" type="number" inputmode="numeric" min="10" max="300" value="60" />
+              <input id="graceInput" class="row-input" style="width:54px;" type="number" inputmode="numeric" min="0" max="600" value="180" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <div class="row-label">每次按键延后时长</div>
+              <div class="row-desc">30~600 秒（默认 3 分钟）</div>
+            </div>
+            <input id="keySnoozeSecInput" class="row-input" style="width:72px;" type="number" inputmode="numeric" min="30" max="600" value="180" />
+          </div>
+
+          <div class="adv-sec-title">电流传感器纠偏（识别正常时保持自动即可）</div>
+          <div class="seg three">
+            <button id="cuAuto" class="seg-btn active" onclick="setCurrUnitOvr(0)">单位:自动</button>
+            <button id="cuUa" class="seg-btn" onclick="setCurrUnitOvr(1)">强制 uA</button>
+            <button id="cuMa" class="seg-btn" onclick="setCurrUnitOvr(2)">强制 mA</button>
+          </div>
+          <div class="seg three">
+            <button id="csAuto" class="seg-btn active" onclick="setCurrSignOvr(0)">符号:自动</button>
+            <button id="csPos" class="seg-btn" onclick="setCurrSignOvr(1)">放电为正(+)</button>
+            <button id="csNeg" class="seg-btn" onclick="setCurrSignOvr(2)">放电为负(-)</button>
+          </div>
+        </div>
+      </details>
+
+      <button class="btn-primary" onclick="saveConfig(this)">保存设置（秒级生效）</button>
+
+      <div class="btn-group">
+        <button class="btn-sec" onclick="runAction('restart', this)">重启服务</button>
+        <button class="btn-sec danger" onclick="runAction('stop', this)">停止服务</button>
+        <button class="btn-sec" onclick="runAction('clear_log', this)">清空记录</button>
+        <button class="btn-sec" onclick="resetDefaults(this)">恢复默认</button>
+      </div>
+
+      <button class="btn-sec" style="width:100%;height:42px;margin-bottom:10px;" onclick="exportDiagnostics(this)">📦 导出诊断数据</button>
+
+      <div class="footer-note">❄ 琪露诺冰结守护 v6.1 · 作者：影儿 · config.conf · learned.conf</div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const HELPER = '/data/adb/modules/voltage_battery_sim/config_helper.sh';
+    const TAB_INDEX = { home: 0, archive: 1, settings: 2 };
+
+    let cbSeq = 0;
+    let activeTab = 'home';
+    let currentSvUv = 3200000;
+    let currentEffSvUv = 3200000;
+    let curveMode = 0;
+    let chargeMode = 0;
+    let currUnitOvr = 0;
+    let currSignOvr = 0;
+    let chartMaxPoints = 60;
+    let initialized = false;
+    let toastTimer = null;
+    let cachedHistory = [];
+    let customCurveOk = false;
+    let linkMode = 1;
+    let expertDirty = false;
+
+    // 渲染与调度优化状态
+    let chartDirty = false;
+    let archiveLoaded = false;
+    let isDraggingRange = false;
+    let svRafId = 0;
+    let pendingSvUv = null;
+    let pendingSvSkipInput = false;
+    let lastStatusTs = 0;
+    let lastEventsTs = 0;
+    let lastArchiveTs = 0;
+    let statusReqSeq = 0;
+    let statusTimer = null;
+    let eventsTimer = null;
+    let archiveTimer = null;
+    const inFlight = { status: 0, history: false, blackbox: false, events: false };
+
+    // 高频 DOM 引用缓存
+    const domCache = Object.create(null);
+    function $id(id) {
+      let el = domCache[id];
+      if (!el) {
+        el = document.getElementById(id);
+        if (el) domCache[id] = el;
+      }
+      return el;
+    }
+    const presetChips = Array.from(document.querySelectorAll('#presetGrid .chip'));
+    const tabPanes = {
+      home: $id('pane-home'),
+      archive: $id('pane-archive'),
+      settings: $id('pane-settings')
+    };
+    const tabBtns = Array.from(document.querySelectorAll('.tab-btn'));
+
+    function escHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Diff 写入工具：避免无变化时触发 DOM 重排/重绘或吞掉按钮点击
+    function setText(el, val) {
+      if (!el) return;
+      const s = String(val);
+      if (el.textContent !== s) el.textContent = s;
+    }
+    function setClass(el, cls) {
+      if (!el) return;
+      if (el.className !== cls) el.className = cls;
+    }
+    function setDisplay(el, disp) {
+      if (!el) return;
+      if (el.style.display !== disp) el.style.display = disp;
+    }
+    function setTitle(el, title) {
+      if (!el) return;
+      if (title) {
+        if (el.title !== title) el.title = title;
+      } else if (el.hasAttribute('title')) {
+        el.removeAttribute('title');
+      }
+    }
+    function setHtmlIfChanged(el, key, html) {
+      if (!el) return;
+      if (el._htmlKey === key) return;
+      el._htmlKey = key;
+      el.innerHTML = html;
+    }
+
+    function invalidateCrossTabCache() {
+      lastStatusTs = 0;
+      lastEventsTs = 0;
+      lastArchiveTs = 0;
+    }
+
+    async function withBtnLoading(btn, fn) {
+      if (!btn) return fn();
+      if (btn.classList.contains('is-loading')) return;
+      btn.classList.add('is-loading');
+      btn.disabled = true;
+      try {
+        return await fn();
+      } finally {
+        btn.classList.remove('is-loading');
+        btn.disabled = false;
+      }
+    }
+
+    function hasKsu() {
+      return typeof window.ksu !== 'undefined' && typeof window.ksu.exec === 'function';
+    }
+
+    function switchTab(name, btn) {
+      if (activeTab === name) return;
+      activeTab = name;
+      const idx = TAB_INDEX[name] || 0;
+      $id('tabbar').style.setProperty('--tab-idx', idx);
+      for (const k in tabPanes) {
+        tabPanes[k].classList.toggle('show', k === name);
+      }
+      tabBtns.forEach(b => b.classList.toggle('active', btn ? b === btn : b.dataset.tab === name));
+      if (window.scrollY > 60) window.scrollTo(0, 0);
+
+      // 切到电池档案时，按需懒加载或补绘延迟的图表
+      if (name === 'archive') {
+        if (chartDirty && cachedHistory.length > 0) {
+          chartDirty = false;
+          renderChart(cachedHistory);
+        }
+        if (hasKsu() && (!archiveLoaded || Date.now() - lastArchiveTs > 30000)) {
+          Promise.all([loadHistory(), loadBlackboxEvents()]);
+        }
+      } else if (name === 'home') {
+        if (hasKsu()) {
+          const tasks = [];
+          if (Date.now() - lastStatusTs > 3000) tasks.push(loadStatus(false));
+          if (Date.now() - lastEventsTs > 20000) tasks.push(loadEvents());
+          if (tasks.length) Promise.all(tasks);
+        }
+      }
+      rescheduleLoops();
+    }
+
+    function showToast(msg) {
+      const el = $id('toast');
+      setText(el, msg);
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+    }
+
+    function execShell(cmd, timeoutMs = 8000) {
+      return new Promise((resolve, reject) => {
+        if (!hasKsu()) {
+          reject(new Error('NO_KSU'));
+          return;
+        }
+        const cbName = '__vbat53_cb_' + Date.now() + '_' + (++cbSeq);
+        let done = false;
+        const timer = setTimeout(() => {
+          if (!done) {
+            done = true;
+            try { delete window[cbName]; } catch (e) {}
+            reject(new Error('命令执行超时'));
+          }
+        }, timeoutMs);
+
+        window[cbName] = function(errno, stdout, stderr) {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          try { delete window[cbName]; } catch (e) {}
+          resolve({ errno: Number(errno), stdout: String(stdout || ''), stderr: String(stderr || '') });
+        };
+
+        try {
+          window.ksu.exec(cmd, '{}', cbName);
+        } catch (err) {
+          if (!done) {
+            done = true;
+            clearTimeout(timer);
+            try { delete window[cbName]; } catch (e) {}
+            reject(err);
+          }
+        }
+      });
+    }
+
+    function parseKv(text) {
+      const map = {};
+      const lines = text.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const idx = line.indexOf('=');
+        if (idx > 0) map[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+      }
+      return map;
+    }
+
+    function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+    function uvToV(uv, digits) {
+      const n = Number(uv);
+      if (!isFinite(n) || n <= 0) return '--';
+      return (n / 1000000).toFixed(digits);
+    }
+    function formatUptime(sec) {
+      const s = Number(sec);
+      if (!isFinite(s) || s < 0) return '--';
+      if (s < 60) return s + '秒';
+      if (s < 3600) return Math.floor(s / 60) + '分';
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      return h + '时' + m + '分';
+    }
+
+    // 与 common.sh 联动规则保持一致：空电=红线-0.02V，提醒=红线+0.05~0.15V
+    function derivedFromSv(svUv) {
+      let minV = clamp(svUv - 20000, 2850000, 3600000);
+      let lowMin = clamp(svUv + 50000, 2850000, 3700000);
+      let lowMax = clamp(svUv + 150000, 2900000, 3800000);
+      if (lowMax <= lowMin) lowMax = lowMin + 100000;
+      return { minV, lowMin, lowMax };
+    }
+
+    function setCurveMode(mode) {
+      curveMode = clamp(Number(mode) || 0, 0, 2);
+      const c1 = $id('modeLinear');
+      const c2 = $id('modeCurve');
+      const c3 = $id('modeCustom');
+      c1.classList.toggle('active', curveMode === 0);
+      c2.classList.toggle('active', curveMode === 1);
+      c3.classList.toggle('active', curveMode === 2);
+      c3.classList.toggle('disabled', curveMode === 2 && !customCurveOk);
+      highlightScene();
+    }
+
+    function setChargeMode(mode) {
+      chargeMode = clamp(Number(mode) || 0, 0, 2);
+      $id('chgSmooth').classList.toggle('active', chargeMode === 0);
+      $id('chgLegacy').classList.toggle('active', chargeMode === 1);
+      $id('chgNative').classList.toggle('active', chargeMode === 2);
+    }
+
+    function setCurrUnitOvr(m) {
+      currUnitOvr = clamp(Number(m) || 0, 0, 2);
+      $id('cuAuto').classList.toggle('active', currUnitOvr === 0);
+      $id('cuUa').classList.toggle('active', currUnitOvr === 1);
+      $id('cuMa').classList.toggle('active', currUnitOvr === 2);
+    }
+
+    function setCurrSignOvr(m) {
+      currSignOvr = clamp(Number(m) || 0, 0, 2);
+      $id('csAuto').classList.toggle('active', currSignOvr === 0);
+      $id('csPos').classList.toggle('active', currSignOvr === 1);
+      $id('csNeg').classList.toggle('active', currSignOvr === 2);
+    }
+
+    function applyScene(name) {
+      if (name === 'power') {
+        $id('timeInput').value = 20;
+        $id('screenOffInput').value = 120;
+        $id('pollStepInput').value = 4;
+        setCurveMode(1);
+        setChargeMode(0);
+      } else if (name === 'balanced') {
+        $id('timeInput').value = 10;
+        $id('screenOffInput').value = 60;
+        $id('pollStepInput').value = 2;
+        setCurveMode(0);
+        setChargeMode(0);
+      } else if (name === 'fast') {
+        $id('timeInput').value = 5;
+        $id('screenOffInput').value = 20;
+        $id('pollStepInput').value = 1;
+        setCurveMode(0);
+        setChargeMode(0);
+      }
+      highlightScene();
+      showToast('已填入预设参数，点击「保存设置」立即生效');
+    }
+
+    function highlightScene() {
+      const t = Number($id('timeInput').value);
+      const so = Number($id('screenOffInput').value);
+      $id('scPower').classList.toggle('active', t >= 18 && so >= 100);
+      $id('scBalanced').classList.toggle('active', t === 10 && so === 60);
+      $id('scFast').classList.toggle('active', t <= 6 && so <= 30);
+    }
+
+    function onExpertToggle() {
+      expertDirty = true;
+      const on = $id('expertToggle').checked;
+      setDisplay($id('expertInputs'), on ? 'block' : 'none');
+      if (on) {
+        flushSvRaf();
+        const d = derivedFromSv(currentSvUv);
+        $id('minVInput').value = (d.minV / 1000000).toFixed(2);
+        $id('lowMinInput').value = (d.lowMin / 1000000).toFixed(2);
+        $id('lowMaxInput').value = (d.lowMax / 1000000).toFixed(2);
+      }
+      updateLinkPreview();
+    }
+
+    let linkPreviewMode = -1;
+    function updateLinkPreview() {
+      const el = $id('linkPreview');
+      const expert = $id('expertToggle').checked;
+      if (expert) {
+        if (linkPreviewMode !== 1) {
+          linkPreviewMode = 1;
+          el.innerHTML = '专家模式已开启：空电电压与低电提醒区间由你手动控制，保存后生效。';
+        }
+        return;
+      }
+      const d = derivedFromSv(currentSvUv);
+      const minStr = (d.minV / 1000000).toFixed(2) + 'V';
+      const lowStr = (d.lowMin / 1000000).toFixed(2) + ' ~ ' + (d.lowMax / 1000000).toFixed(2) + 'V';
+      if (linkPreviewMode !== 0) {
+        linkPreviewMode = 0;
+        el.innerHTML =
+          '联动模式已开启，改红线自动同步：<br/>'
+          + '· 空电电压（0%）= <strong id="lpMinV"></strong>　'
+          + '· 低电提醒 = <strong id="lpLowRange"></strong><br/>'
+          + '<span style="font-size:11px;opacity:0.85;">想手动微调？打开下方「高级设置」里的专家模式。</span>';
+        delete domCache.lpMinV;
+        delete domCache.lpLowRange;
+      }
+      setText($id('lpMinV'), minStr);
+      setText($id('lpLowRange'), lowStr);
+    }
+
+    function updateRangeTrack(uv) {
+      const pct = ((uv - 2850000) / (3600000 - 2850000)) * 100;
+      $id('svRange').style.setProperty('--range-pct', clamp(pct, 0, 100).toFixed(2) + '%');
+    }
+
+    function cancelSvRaf() {
+      if (svRafId) {
+        cancelAnimationFrame(svRafId);
+        svRafId = 0;
+      }
+      pendingSvUv = null;
+    }
+
+    function flushSvRaf() {
+      if (svRafId) {
+        cancelAnimationFrame(svRafId);
+        svRafId = 0;
+      }
+      if (pendingSvUv !== null) {
+        const target = pendingSvUv;
+        const skip = pendingSvSkipInput;
+        pendingSvUv = null;
+        applySvDOM(target, skip);
+      }
+    }
+
+    function applySvDOM(uv, skipInput) {
+      currentSvUv = uv;
+      const vStr = (uv / 1000000).toFixed(2);
+      setText($id('svDisplay'), vStr);
+      setText($id('svUvDisplay'), uv + ' uV（实际生效以动态红线为准）');
+      const rangeEl = $id('svRange');
+      if (Number(rangeEl.value) !== uv) rangeEl.value = uv;
+      updateRangeTrack(uv);
+      if (!skipInput) {
+        const inp = $id('svInput');
+        if (inp.value !== vStr) inp.value = vStr;
+      }
+      for (let i = 0; i < presetChips.length; i++) {
+        const btn = presetChips[i];
+        btn.classList.toggle('active', Number(btn.dataset.uv) === uv);
+      }
+      updateLinkPreview();
+      if (activeTab === 'archive') {
+        renderChart(cachedHistory);
+      } else {
+        chartDirty = true;
+      }
+    }
+
+    function syncSvUI(uv, skipInput) {
+      cancelSvRaf();
+      const snapped = clamp(Math.round(uv / 10000) * 10000, 2850000, 3600000);
+      applySvDOM(snapped, skipInput);
+    }
+
+    function scheduleSvRaf(uv, skipInput) {
+      pendingSvUv = uv;
+      pendingSvSkipInput = skipInput;
+      if (svRafId) return;
+      svRafId = requestAnimationFrame(() => {
+        svRafId = 0;
+        if (pendingSvUv !== null) {
+          const target = pendingSvUv;
+          const skip = pendingSvSkipInput;
+          pendingSvUv = null;
+          applySvDOM(target, skip);
+        }
+      });
+    }
+
+    function stepSv(deltaUv) {
+      flushSvRaf();
+      syncSvUI(currentSvUv + deltaUv, false);
+    }
+    function pickPreset(uv) { syncSvUI(uv, false); }
+    function onSvRange() {
+      const val = clamp(Math.round(Number($id('svRange').value) / 10000) * 10000, 2850000, 3600000);
+      scheduleSvRaf(val, false);
+    }
+
+    function onSvInput() {
+      const raw = parseFloat($id('svInput').value);
+      if (!isFinite(raw)) return;
+      const uv = Math.round(raw * 1000000);
+      if (uv >= 2850000 && uv <= 3600000) {
+        scheduleSvRaf(uv, true);
+      }
+    }
+
+    // 步进按钮支持点按 + 长按连续调节（防多指泄漏与异常松手卡死）
+    function bindHoldStep(btnId, deltaUv) {
+      const btn = $id(btnId);
+      if (!btn) return;
+      let holdDelay = null;
+      let holdRepeat = null;
+      const stop = () => {
+        if (holdDelay !== null) { clearTimeout(holdDelay); holdDelay = null; }
+        if (holdRepeat !== null) { clearInterval(holdRepeat); holdRepeat = null; }
+        btn.classList.remove('holding');
+      };
+      btn.addEventListener('pointerdown', e => {
+        if (e.button && e.button !== 0) return;
+        e.preventDefault();
+        stop();
+        btn.classList.add('holding');
+        stepSv(deltaUv);
+        holdDelay = setTimeout(() => {
+          holdDelay = null;
+          holdRepeat = setInterval(() => stepSv(deltaUv), 75);
+        }, 360);
+      });
+      btn.addEventListener('pointerup', stop);
+      btn.addEventListener('pointercancel', stop);
+      btn.addEventListener('pointerleave', stop);
+      window.addEventListener('pointerup', stop);
+      window.addEventListener('pointercancel', stop);
+      window.addEventListener('blur', stop);
+      btn.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          stepSv(deltaUv);
+        }
+      });
+    }
+    bindHoldStep('btnStepDown', -10000);
+    bindHoldStep('btnStepUp', 10000);
+
+    // 滑块拖动期间暂停后台状态轮询，window 兜底重置防状态卡死
+    const svRangeEl = $id('svRange');
+    const clearDrag = () => { isDraggingRange = false; };
+    svRangeEl.addEventListener('pointerdown', () => { isDraggingRange = true; });
+    svRangeEl.addEventListener('change', clearDrag);
+    window.addEventListener('pointerup', clearDrag);
+    window.addEventListener('pointercancel', clearDrag);
+    window.addEventListener('blur', clearDrag);
+
+    function setChartWindow(maxPts) {
+      if (chartMaxPoints === maxPts) return;
+      chartMaxPoints = maxPts;
+      $id('win2h').classList.toggle('active', maxPts === 60);
+      $id('win12h').classList.toggle('active', maxPts === 360);
+      renderChart(cachedHistory);
+    }
+
+    let lastChartSig = '';
+    function renderChart(allPoints) {
+      const svg = $id('chartSvg');
+      const empty = $id('chartEmpty');
+      const points = (allPoints || []).slice(-chartMaxPoints);
+
+      if (points.length < 2) {
+        setDisplay(svg, 'none');
+        setDisplay(empty, 'flex');
+        setText($id('chartRange'), points.length + ' 点');
+        lastChartSig = '';
+        return;
+      }
+
+      const redLineV = Math.max(currentSvUv, currentEffSvUv || currentSvUv);
+      const lastPt = points[points.length - 1];
+      const sig = points.length + '|' + points[0].t + '|' + lastPt.t + '|' + lastPt.v + '|' + lastPt.vc + '|' + redLineV;
+      if (sig === lastChartSig) return;
+      lastChartSig = sig;
+
+      setDisplay(empty, 'none');
+      setDisplay(svg, 'block');
+
+      let minV = redLineV;
+      let maxV = redLineV;
+      let rawMin = points[0].v;
+      let rawMax = points[0].v;
+      for (let i = 0; i < points.length; i++) {
+        const pv = points[i].v;
+        const pvc = points[i].vc > 1000000 ? points[i].vc : pv;
+        if (pv < minV) minV = pv;
+        if (pvc > maxV) maxV = pvc;
+        if (pv < rawMin) rawMin = pv;
+        if (pv > rawMax) rawMax = pv;
+      }
+      minV -= 50000;
+      maxV += 50000;
+      if (maxV - minV < 200000) {
+        const mid = (maxV + minV) / 2;
+        minV = mid - 100000;
+        maxV = mid + 100000;
+      }
+
+      const padL = 36, padR = 10, padT = 12, padB = 22;
+      const W = 320, H = 162;
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+      const spanV = maxV - minV;
+      const nMinus1 = points.length - 1;
+
+      const rawCoords = new Array(points.length);
+      const compCoords = new Array(points.length);
+      for (let i = 0; i < points.length; i++) {
+        const x = (padL + (i / nMinus1) * plotW).toFixed(1);
+        const pv = points[i].v;
+        const pvc = points[i].vc > 1000000 ? points[i].vc : pv;
+        rawCoords[i] = x + ',' + (padT + (1 - (pv - minV) / spanV) * plotH).toFixed(1);
+        compCoords[i] = x + ',' + (padT + (1 - (pvc - minV) / spanV) * plotH).toFixed(1);
+      }
+      const polyRaw = rawCoords.join(' ');
+      const polyComp = compCoords.join(' ');
+      const areaPts = padL + ',' + (padT + plotH) + ' ' + polyRaw + ' ' + (padL + plotW) + ',' + (padT + plotH);
+      const svY = clamp(padT + (1 - (redLineV - minV) / spanV) * plotH, padT, padT + plotH).toFixed(1);
+
+      const tFirst = escHtml(points[0].t || '');
+      const tMid = escHtml(points[Math.floor(points.length / 2)].t || '');
+      const tLast = escHtml(lastPt.t || '');
+      const midV = (minV + maxV) / 2;
+
+      svg.innerHTML =
+        '<defs><linearGradient id="vGrad" x1="0" y1="0" x2="0" y2="1">'
+        + '<stop offset="0%" stop-color="#5cc8ff" stop-opacity="0.28"/>'
+        + '<stop offset="100%" stop-color="#5cc8ff" stop-opacity="0.01"/>'
+        + '</linearGradient></defs>'
+        + '<line x1="' + padL + '" y1="' + padT + '" x2="' + (W - padR) + '" y2="' + padT + '" stroke="rgba(229,203,148,0.18)" stroke-width="1"/>'
+        + '<line x1="' + padL + '" y1="' + (padT + plotH / 2).toFixed(1) + '" x2="' + (W - padR) + '" y2="' + (padT + plotH / 2).toFixed(1) + '" stroke="rgba(229,203,148,0.16)" stroke-width="1" stroke-dasharray="3,3"/>'
+        + '<line x1="' + padL + '" y1="' + (padT + plotH) + '" x2="' + (W - padR) + '" y2="' + (padT + plotH) + '" stroke="rgba(229,203,148,0.18)" stroke-width="1"/>'
+        + '<text x="2" y="' + (padT + 4) + '" fill="#93aecb" font-size="9">' + (maxV / 1000000).toFixed(2) + 'V</text>'
+        + '<text x="2" y="' + (padT + plotH / 2 + 3).toFixed(1) + '" fill="#93aecb" font-size="9">' + (midV / 1000000).toFixed(2) + 'V</text>'
+        + '<text x="2" y="' + (padT + plotH + 3) + '" fill="#93aecb" font-size="9">' + (minV / 1000000).toFixed(2) + 'V</text>'
+        + '<polygon points="' + areaPts + '" fill="url(#vGrad)"/>'
+        + '<polyline fill="none" stroke="#5eead4" stroke-width="1.5" stroke-linejoin="round" opacity="0.88" points="' + polyComp + '"/>'
+        + '<polyline fill="none" stroke="#8be2ff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="' + polyRaw + '"/>'
+        + '<line x1="' + padL + '" y1="' + svY + '" x2="' + (W - padR) + '" y2="' + svY + '" stroke="#fb7185" stroke-width="1.3" stroke-dasharray="4,3"/>'
+        + '<text x="' + (W - padR - 2) + '" y="' + (Number(svY) - 3) + '" text-anchor="end" fill="#fb7185" font-size="9">' + (redLineV / 1000000).toFixed(2) + 'V</text>'
+        + '<text x="' + padL + '" y="' + (H - 5) + '" fill="#93aecb" font-size="9">' + tFirst + '</text>'
+        + '<text x="' + (padL + plotW / 2).toFixed(1) + '" y="' + (H - 5) + '" text-anchor="middle" fill="#93aecb" font-size="9">' + tMid + '</text>'
+        + '<text x="' + (W - padR) + '" y="' + (H - 5) + '" text-anchor="end" fill="#93aecb" font-size="9">' + tLast + '</text>';
+
+      setText(
+        $id('chartRange'),
+        points.length + '点 · ' + (rawMin / 1000000).toFixed(2) + '~' + (rawMax / 1000000).toFixed(2) + 'V'
+      );
+    }
+
+    async function loadHistory() {
+      if (inFlight.history) return;
+      inFlight.history = true;
+      try {
+        const res = await execShell('sh "' + HELPER + '" history');
+        if (res.errno !== 0) return;
+        const pts = [];
+        const lines = res.stdout.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+          const parts = lines[i].trim().split(',');
+          if (parts.length >= 2) {
+            const v = Number(parts[1]);
+            const vc = parts.length >= 3 ? Number(parts[2]) : v;
+            if (isFinite(v) && v > 1000000) pts.push({ t: parts[0], v: v, vc: isFinite(vc) ? vc : v });
+          }
+        }
+        cachedHistory = pts;
+        archiveLoaded = true;
+        lastArchiveTs = Date.now();
+        if (activeTab === 'archive') {
+          chartDirty = false;
+          renderChart(pts);
+        } else {
+          chartDirty = true;
+        }
+      } catch (e) {
+      } finally {
+        inFlight.history = false;
+      }
+    }
+
+    async function loadBlackboxEvents() {
+      if (inFlight.blackbox) return;
+      inFlight.blackbox = true;
+      try {
+        const res = await execShell('sh "' + HELPER + '" blackbox_events');
+        const wrap = $id('bbTableWrap');
+        const body = $id('bbTableBody');
+        const raw = res.errno === 0 ? res.stdout.trim() : '';
+        if (!raw) {
+          wrap.classList.remove('show');
+          setHtmlIfChanged(body, '', '');
+          return;
+        }
+        const rows = raw.split('\n').reverse().slice(0, 6);
+        let html = '';
+        for (let i = 0; i < rows.length; i++) {
+          const p = rows[i].split(',');
+          if (p.length >= 4) {
+            const vTxt = uvToV(p[1], 2) + 'V';
+            const iTxt = (Number(p[2]) || 0) + 'mA';
+            const tTxt = (isFinite(Number(p[3])) ? (Number(p[3]) / 10).toFixed(1) : '--') + '°C';
+            html += '<tr><td>' + escHtml(p[0]) + '</td><td>' + vTxt + '</td><td>' + iTxt + '</td><td>' + tTxt + '</td></tr>';
+          }
+        }
+        if (html) {
+          setHtmlIfChanged(body, raw, html);
+          wrap.classList.add('show');
+        } else {
+          wrap.classList.remove('show');
+        }
+      } catch (e) {
+      } finally {
+        inFlight.blackbox = false;
+      }
+    }
+
+    // v5.4.1 最近事件记录（只展示最近 6 条：人性化时间 + 新事件高亮 + HTML 转义 + 无变化跳过重绘）
+    const EVENT_STYLE = {
+      '服务': { cls: '', icon: '❄️' },
+      '关机保护': { cls: 'danger', icon: '⛔' },
+      '续命': { cls: 'warn', icon: '🔔' },
+      '急速关机': { cls: 'danger', icon: '⚡' },
+      '满电学习': { cls: 'teal', icon: '🔋' },
+      '黑匣子': { cls: 'warn', icon: '🧾' },
+      '校准': { cls: 'primary', icon: '📈' },
+      '配置': { cls: '', icon: '🛠️' },
+      '低电提醒': { cls: 'warn', icon: '⚠️' },
+    };
+    const EVENT_LIMIT = 6;
+    const eventSeenKeys = new Set();
+
+    function trimSeenKeys() {
+      if (eventSeenKeys.size <= 120) return;
+      const iter = eventSeenKeys.values();
+      for (let i = 0; i < 60; i++) {
+        const oldest = iter.next().value;
+        if (oldest !== undefined) eventSeenKeys.delete(oldest);
+      }
+    }
+
+    function fmtEventTime(ts) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}:\d{2})/.exec(ts);
+      if (!m) return ts;
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const that = new Date(+m[1], +m[2] - 1, +m[3]);
+      const diff = Math.round((today - that) / 86400000);
+      if (diff === 0) return '今天 ' + m[4];
+      if (diff === 1) return '昨天 ' + m[4];
+      return m[2] + '-' + m[3] + ' ' + m[4];
+    }
+
+    async function loadEvents(btn) {
+      if (inFlight.events) return;
+      inFlight.events = true;
+      const run = async () => {
+        try {
+          const res = await execShell('sh "' + HELPER + '" events');
+          lastEventsTs = Date.now();
+          const list = $id('eventsList');
+          const cnt = $id('eventCount');
+          const raw = res.errno === 0 ? res.stdout.trim() : '';
+          if (!raw) {
+            setHtmlIfChanged(list, '__EMPTY__', '<div class="event-empty">暂无事件记录（服务运行后会自动产生）</div>');
+            setText(cnt, '');
+            return;
+          }
+          if (list._htmlKey === raw) return;
+          const rows = raw.split('\n').reverse().slice(0, EVENT_LIMIT);
+          const hadSeen = eventSeenKeys.size > 0;
+          let html = '';
+          let validCount = 0;
+          for (let i = 0; i < rows.length; i++) {
+            const line = rows[i];
+            const idx1 = line.indexOf('|');
+            if (idx1 <= 0) continue;
+            validCount++;
+            const ts = line.slice(0, idx1);
+            const rest = line.slice(idx1 + 1);
+            const idx2 = rest.indexOf('|');
+            const type = idx2 > 0 ? rest.slice(0, idx2) : rest;
+            const msg = idx2 > 0 ? rest.slice(idx2 + 1) : '';
+            const st = EVENT_STYLE[type] || { cls: '', icon: '✦' };
+            const key = ts + '|' + type + '|' + msg;
+            const isNew = hadSeen && !eventSeenKeys.has(key);
+            eventSeenKeys.add(key);
+            html += '<div class="event-item' + (isNew ? ' event-new' : '') + '">'
+              + '<span class="event-badge ' + st.cls + '">' + st.icon + ' ' + escHtml(type) + '</span>'
+              + '<div class="event-body">'
+              + '<div class="event-msg">' + escHtml(msg) + '</div>'
+              + '<div class="event-time">' + escHtml(fmtEventTime(ts)) + '</div>'
+              + '</div></div>';
+          }
+          trimSeenKeys();
+          if (validCount === 0) {
+            setHtmlIfChanged(list, '__EMPTY__', '<div class="event-empty">暂无事件记录（服务运行后会自动产生）</div>');
+            setText(cnt, '');
+            return;
+          }
+          setHtmlIfChanged(list, raw, html);
+          setText(cnt, '（' + validCount + ' 条）');
+        } catch (e) {
+        } finally {
+          inFlight.events = false;
+        }
+      };
+      return btn ? withBtnLoading(btn, run) : run();
+    }
+
+    function updateRescueCard(d) {
+      const card = $id('rescueCard');
+      const title = $id('rescueTitle');
+      const desc = $id('rescueDesc');
+      const btns = $id('rescueBtns');
+      const cd = d.COUNTDOWN_ACTIVE === '1';
+      const snzCan = d.SNOOZE_CANCELED === '1';
+      const snzRem = Number(d.SNOOZE_REM) || 0;
+
+      if (cd) {
+        setClass(card, 'rescue-card show');
+        setText(title, '⚠️ 关机倒计时正在运行！');
+        setText(desc, '按手机音量键（+或-）即可立即延后 3 分钟；也可点下方按钮延后或取消本次自动关机。');
+        setHtmlIfChanged(
+          btns,
+          'cd',
+          '<button class="btn-rescue" onclick="runAction(\'snooze 180\', this)">延后关机 3 分钟</button>'
+          + '<button class="btn-rescue sub" onclick="runAction(\'cancel_shutdown\', this)">取消本次关机</button>'
+        );
+      } else if (snzCan) {
+        setClass(card, 'rescue-card show snoozed');
+        setText(title, '⏸ 本次自动关机已取消');
+        setText(desc, '为防过度放电损坏电池，请尽快充电（下次充电后自动恢复保护）。');
+        setHtmlIfChanged(
+          btns,
+          'can',
+          '<button class="btn-rescue sub" style="grid-column:span 2;" onclick="runAction(\'resume_shutdown\', this)">立即恢复自动关机保护</button>'
+        );
+      } else if (snzRem > 0) {
+        setClass(card, 'rescue-card show snoozed');
+        setText(title, '⏳ 紧急续命中（剩余约 ' + snzRem + ' 秒）');
+        setText(desc, '到期后若电压仍低于动态关机红线将重新检测并提醒。');
+        setHtmlIfChanged(
+          btns,
+          'snz',
+          '<button class="btn-rescue sub" onclick="runAction(\'snooze 180\', this)">再延后 3 分钟</button>'
+          + '<button class="btn-rescue sub" onclick="runAction(\'resume_shutdown\', this)">立即恢复保护</button>'
+        );
+      } else {
+        setClass(card, 'rescue-card');
+      }
+
+      const pf = Number(d.PENDING_FLOOR_V) || 0;
+      const bbCard = $id('bbSuggestCard');
+      if (pf >= 3000000) {
+        bbCard.classList.add('show');
+        setText($id('bbSuggestTitle'), '🔎 断电复盘建议将保护红线升至 ' + uvToV(pf, 2) + 'V');
+        setText(
+          $id('bbSuggestDesc'),
+          '上次捕获：' + (d.LAST_BS_INFO || '低压异常断电') + '。若确认上次确为电量耗尽突然黑屏，请点击采纳；若为误报请点击忽略。'
+        );
+      } else {
+        bbCard.classList.remove('show');
+      }
+    }
+
+    function updateCalibCard(d) {
+      const status = $id('calibStatus');
+      const btns = $id('calibBtns');
+      const phase = Number(d.CALIB_PHASE) || 0;
+      const samples = Number(d.CALIB_SAMPLES) || 0;
+      const buckets = Number(d.CALIB_BUCKETS) || 0;
+      const span = Number(d.CALIB_SPAN) || 0;
+      const minPct = Number(d.CALIB_MIN_PCT) || 0;
+      const maxPct = Number(d.CALIB_MAX_PCT) || 0;
+      const minV = Number(d.CALIB_MIN_V) || 0;
+      const maxV = Number(d.CALIB_MAX_V) || 0;
+      const ready = (samples >= 6 && buckets >= 3 && span >= 25);
+
+      const statusKey = [d.CALIB_MODE, phase, samples, buckets, span, minPct, maxPct, minV, maxV, d.CUSTOM_CURVE_OK, d.CURVE_MODE].join('|');
+      let btnKey = 'idle';
+      let btnHtml = '';
+
+      if (d.CALIB_MODE === '1') {
+        if (phase === 1 || phase === 2) {
+          btnKey = ready ? 'ready' : 'collecting';
+          btnHtml = '<button class="btn-rescue warn" onclick="runAction(\'calib_finish\', this)">'
+            + (ready ? '立即生成专属曲线' : '结束并生成曲线') + '</button>'
+            + '<button class="btn-rescue sub" onclick="runAction(\'calib_abort\', this)">放弃校准</button>';
+        } else {
+          btnKey = 'wait';
+          btnHtml = '<button class="btn-rescue sub" style="grid-column:span 2;" onclick="runAction(\'calib_abort\', this)">放弃校准</button>';
+        }
+      } else {
+        btnKey = 'idle';
+        btnHtml = '<button class="btn-rescue warn" style="grid-column:span 2;" onclick="runAction(\'calib_start\', this)">开始极速引导校准</button>';
+      }
+
+      setHtmlIfChanged(btns, btnKey, btnHtml);
+
+      if (status._htmlKey !== statusKey) {
+        let statusHtml = '';
+        if (d.CALIB_MODE === '1') {
+          const progTxt = '已采 ' + samples + ' 点 · 覆盖 ' + buckets + '/11 区间'
+            + (span > 0 ? '（' + maxPct + '%→' + minPct + '%，跨度 ' + span + '%）' : '')
+            + (minV > 0 && maxV > 0 ? ' · 电压 ' + uvToV(maxV, 2) + '~' + uvToV(minV, 2) + 'V' : '');
+          if (phase === 1) {
+            statusHtml = '<strong>📈 极速采样中：</strong>' + progTxt + '<br/>'
+              + (ready
+                ? '<span style="color:var(--ok);font-weight:600;">✓ 已达到极速生成门槛！现在可点击「立即生成专属曲线」，或继续使用提高精度（插电自动保断点）。</span>'
+                : '还需累计约 ' + Math.max(1, 25 - span) + '% 电量跨度即可生成；中途插电会自动保存断点，拔线继续。');
+          } else if (phase === 2) {
+            statusHtml = '<strong>⏸ 充电断点已保存：</strong>' + progTxt + '<br/>'
+              + (ready
+                ? '<span style="color:var(--ok);font-weight:600;">✓ 已有数据已达门槛，可直接点击「立即生成专属曲线」，或拔线后继续补充采样。</span>'
+                : '充电不会丢失进度，拔掉充电器后自动续采剩余区间。');
+          } else {
+            statusHtml = '<strong>⏳ 已就绪：</strong>正在等待放电状态（若正在充电，拔掉充电器即自动开始采样，无需充满）。';
+          }
+        } else {
+          statusHtml = '<strong>💤 未开启。</strong>点击下方按钮立即开始，累计放掉 ≥25% 电量即可快速生成（支持中途插电断点续采）。';
+        }
+        if (d.CUSTOM_CURVE_OK === '1') {
+          statusHtml += '<br/><span style="font-size:11px;color:var(--teal);">已有专属曲线'
+            + (d.CURVE_MODE === '2' ? '（正在使用）' : '（未启用，可在设置→充电与显示中选择「专属校准曲线」）')
+            + '</span>';
+        }
+        setHtmlIfChanged(status, statusKey, statusHtml);
+      }
+    }
+
+    async function loadStatus(forceFillForm) {
+      if (inFlight.status > 0 && !forceFillForm) return;
+      const mySeq = ++statusReqSeq;
+      inFlight.status++;
+      try {
+        const res = await execShell('sh "' + HELPER + '" status', 15000);
+        if (mySeq < statusReqSeq) return;
+        lastStatusTs = Date.now();
+        if (res.errno !== 0) {
+          showToast('读取状态失败：' + (res.stderr || res.stdout));
+          return;
+        }
+        const d = parseKv(res.stdout);
+
+        setText($id('mVoltage'), d.VOLTAGE_NOW ? uvToV(d.VOLTAGE_NOW, 3) + 'V' : '--');
+        setText(
+          $id('mCompV'),
+          d.IR_ACTIVE === '1' && d.COMP_V ? ('补偿 ' + uvToV(d.COMP_V, 3) + 'V') : '未激活补偿'
+        );
+
+        const simTxt = d.SIM_LEVEL ? d.SIM_LEVEL + '%' : '--';
+        const realTxt = (d.CAPACITY !== '' && d.CAPACITY !== undefined) ? d.CAPACITY + '%' : '--';
+        setText($id('mCap'), simTxt + ' / ' + realTxt);
+        setText($id('mOcv'), d.VOLTAGE_OCV ? '静置 ' + uvToV(d.VOLTAGE_OCV, 3) + 'V' : '静置 --');
+
+        // 同步琪露诺角色名片冰晶电量条
+        const barPct = clamp(Number(d.SIM_LEVEL || d.CAPACITY) || 0, 0, 100);
+        const barEl = $id('cirnoCapBar');
+        const barW = barPct + '%';
+        if (barEl && barEl.style.width !== barW) barEl.style.width = barW;
+        setText($id('cirnoCapTxt'), (d.SIM_LEVEL || d.CAPACITY) ? (barPct + '%') : '--%');
+
+        if (d.CURR_VALID === '1') {
+          const chgMa = Number(d.CHG_MA) || 0;
+          const disMa = Number(d.DISCH_MA) || 0;
+          setText($id('mCurrent'), chgMa > 0 ? ('+' + chgMa + 'mA') : ('-' + disMa + 'mA'));
+        } else {
+          setText($id('mCurrent'), '标定中');
+        }
+        const t10 = Number(d.TEMP_C10);
+        setText($id('mTemp'), isFinite(t10) && d.TEMP_C10 !== '' ? ('温度 ' + (t10 / 10).toFixed(1) + '°C') : '温度 --');
+
+        setText($id('pillConn'), '连接 ' + (d.USB_TYPE || d.BAT_STATUS || '--'));
+        setText($id('pillUptime'), '运行 ' + formatUptime(d.UPTIME_SEC));
+        setText($id('pillStreak'), '连击 ' + (d.STREAK || '0') + '/' + (d.SHUTDOWN_CONFIRM || '2'));
+        setDisplay($id('pillDanger'), d.DANGER_ZONE === '1' ? 'inline-block' : 'none');
+
+        const keyEl = $id('pillKey');
+        if (d.KEY_OK === '1') {
+          setClass(keyEl, 'pill ok');
+          setText(keyEl, d.KEY_SNOOZE === '1' ? '按键续命 可用' : '按键续命 已关闭');
+        } else {
+          setClass(keyEl, 'pill warn');
+          setText(keyEl, '按键续命 未识别');
+        }
+        setText(
+          $id('keyNodeTxt'),
+          d.KEY_OK === '1' ? ('节点：' + (d.KEY_NODE || '已识别')) : '本机型未识别音量键，可在模块目录放 .keynode_override 指定'
+        );
+
+        const mlEl = $id('pillMaxLearn');
+        const accum = Number(d.MAX_LEARN_ACCUM) || 0;
+        const pSec = Number(d.MAX_LEARN_PEND_SEC) || 0;
+        if (d.MAX_LEARN_PENDING === '1') {
+          setDisplay(mlEl, 'inline-block');
+          setText(mlEl, pSec < 45 ? ('静置倒计时 ' + (45 - pSec) + 's') : ('等待低载采样 (' + pSec + 's/900s)'));
+        } else if (d.MAX_LEARN_ARMED === '1') {
+          setDisplay(mlEl, 'inline-block');
+          setText(mlEl, '真满电已就绪(拔线自动学)');
+        } else if (accum > 0) {
+          setDisplay(mlEl, 'inline-block');
+          setText(mlEl, '饱充累积 ' + accum + '/180s');
+        } else {
+          setDisplay(mlEl, 'none');
+        }
+
+        const rNorm = d.R_INT_MOHM || '80';
+        const rLow = Number(d.R_LOW_MOHM) > 0 ? d.R_LOW_MOHM : '--';
+        const sNorm = Number(d.R_SAMPLES) || 0;
+        const sLow = Number(d.R_LOW_SAMPLES) || 0;
+        const sTot = sNorm + sLow;
+        setText($id('dRes'), rNorm + ' / ' + rLow + ' mΩ');
+        setText($id('dResSub'), sTot >= 3 ? ('已激活 (' + sNorm + '+' + sLow + ' 样本)') : ('冷启动 ' + sTot + '/3 样本'));
+
+        const nextEffSv = Number(d.EFF_SHUTDOWN_V) || Number(d.SHUTDOWN_V) || 3200000;
+        if (nextEffSv !== currentEffSvUv) {
+          currentEffSvUv = nextEffSv;
+          if (activeTab === 'archive' && cachedHistory.length >= 2) renderChart(cachedHistory);
+          else chartDirty = true;
+        }
+        setText($id('dEffSv'), uvToV(currentEffSvUv, 2) + 'V');
+        const tb = Number(d.TEMP_BOOST_UV) || 0;
+        const lf = Number(d.LEARNED_FLOOR_V) || 0;
+        let effSub = '基础 ' + uvToV(d.SHUTDOWN_V, 2) + 'V';
+        if (lf > Number(d.SHUTDOWN_V)) effSub = '黑匣子 ' + uvToV(lf, 2) + 'V';
+        if (tb > 0) effSub += ' + 低温' + (tb / 1000000).toFixed(2) + 'V';
+        setText($id('dEffSub'), effSub);
+
+        setText($id('dMaxLearn'), Number(d.LAST_MAX_LEARN_V) > 0 ? uvToV(d.LAST_MAX_LEARN_V, 2) + 'V' : '待饱充');
+        setText($id('dMaxSub'), '累计 ' + (d.MAX_LEARN_CNT || '0') + ' 次学习');
+
+        setText($id('pillCell'), '电芯 ' + (d.CELL_DIV === '2' ? '2S(已折算)' : '1S'));
+
+        const chEl = $id('pillCurrHealth');
+        if (d.CURR_VALID === '1') {
+          setClass(chEl, 'pill ok');
+          const uLabel = d.CURR_UNIT_OVR === '1' ? 'uA(手动)' : d.CURR_UNIT_OVR === '2' ? 'mA(手动)' : (d.CURR_UNIT || 'uA');
+          setText(chEl, '电流: 正常(' + uLabel + ')');
+        } else {
+          setClass(chEl, 'pill warn');
+          setText(chEl, '电流: 标定中/异常');
+        }
+
+        const blEl = $id('pillBlHealth');
+        if (d.BL_OK === '1') {
+          setClass(blEl, 'pill ok');
+          setText(blEl, '背光: 正常');
+        } else {
+          setClass(blEl, 'pill warn');
+          setText(blEl, '背光: 未识别(按亮屏周期)');
+        }
+
+        const ocvEl = $id('pillOcvHealth');
+        setClass(ocvEl, d.OCV_ACTIVE === '1' ? 'pill teal' : 'pill');
+        setText(ocvEl, d.OCV_ACTIVE === '1' ? '静置电压护栏: 活跃' : '静置电压护栏: 观察中');
+
+        const kb = Math.round((Number(d.LOG_BYTES) || 0) / 1024);
+        setText($id('pillLog'), '日志 ' + kb + ' KB');
+
+        if (d.MIN_V && d.MAX_V) {
+          setText($id('calRangeTxt'), uvToV(d.MAX_V, 2) + 'V');
+        }
+
+        const upSec = Number(d.UPTIME_SEC);
+        const graceSec = Number(d.BOOT_GRACE_SEC);
+        const inGrace = isFinite(upSec) && isFinite(graceSec) && graceSec > 0 && upSec < graceSec;
+        const gEl = $id('pillGrace');
+        if (inGrace) {
+          setDisplay(gEl, 'inline-block');
+          setText(gEl, '开机保护剩 ' + (graceSec - upSec) + 's');
+        } else {
+          setDisplay(gEl, 'none');
+        }
+
+        const wdEl = $id('pillWatchdog');
+        if (d.WATCHDOG_OK === '1') {
+          setClass(wdEl, 'pill ok');
+          setText(wdEl, '看门狗在线');
+        } else {
+          setClass(wdEl, 'pill danger');
+          setText(wdEl, '看门狗缺失');
+        }
+
+        const bnEl = $id('pillBatNode');
+        const bnHint = $id('batNodeHint');
+        if (d.BAT_OK === '1') {
+          setClass(bnEl, 'pill ok');
+          setText(bnEl, '电压节点正常');
+          setTitle(bnEl, d.BAT_NODE || '电压节点');
+          setDisplay(bnHint, 'none');
+        } else {
+          setClass(bnEl, 'pill danger');
+          setText(bnEl, '电压节点不可读');
+          setTitle(bnEl, '');
+          setDisplay(bnHint, 'block');
+        }
+
+        const leEl = $id('pillLastExit');
+        const leRaw = (d.LAST_EXIT || '').trim();
+        if (leRaw) {
+          const leParts = leRaw.split('|');
+          const leReason = leParts[1] ? leParts[1].trim() : leRaw;
+          const leRc = leParts.length >= 3 ? leParts[2].trim() : '';
+          setClass(leEl, 'pill danger');
+          setText(leEl, '最近退出: ' + leReason + (leRc ? ' (' + leRc + ')' : ''));
+          setTitle(leEl, leParts[0] ? ('退出时间: ' + leParts[0].trim()) : '');
+        } else {
+          setClass(leEl, 'pill');
+          setText(leEl, '无崩溃记录');
+          setTitle(leEl, '');
+        }
+
+        updateRescueCard(d);
+        updateCalibCard(d);
+
+        const badge = $id('serviceBadge');
+        const text = $id('serviceText');
+        if (d.SERVICE_PID) {
+          setClass(badge, 'badge ok');
+          setText(text, '运行中');
+        } else {
+          setClass(badge, 'badge off');
+          setText(text, '未运行');
+        }
+
+        customCurveOk = d.CUSTOM_CURVE_OK === '1';
+        linkMode = d.LINK_MODE === '0' ? 0 : 1;
+
+        if (!initialized || forceFillForm) {
+          expertDirty = false;
+          if (d.SHUTDOWN_V) syncSvUI(Number(d.SHUTDOWN_V), false);
+          if (d.MAX_V) $id('maxVInput').value = (Number(d.MAX_V) / 1000000).toFixed(2);
+          if (d.MIN_V) $id('minVInput').value = (Number(d.MIN_V) / 1000000).toFixed(2);
+          if (d.LOW_MAX) $id('lowMaxInput').value = (Number(d.LOW_MAX) / 1000000).toFixed(2);
+          if (d.LOW_MIN) $id('lowMinInput').value = (Number(d.LOW_MIN) / 1000000).toFixed(2);
+          if (d.off_time) $id('offTimeInput').value = d.off_time;
+          if (d.SHUTDOWN_CONFIRM) $id('confirmInput').value = d.SHUTDOWN_CONFIRM;
+          if (d.TIME) $id('timeInput').value = d.TIME;
+          if (d.SCREEN_OFF_TIME) $id('screenOffInput').value = d.SCREEN_OFF_TIME;
+          if (d.USB_POLL_STEP) $id('pollStepInput').value = d.USB_POLL_STEP;
+          if (d.BOOT_GRACE_SEC !== undefined && d.BOOT_GRACE_SEC !== '') $id('graceInput').value = d.BOOT_GRACE_SEC;
+          if (d.KEY_SNOOZE_SEC) $id('keySnoozeSecInput').value = d.KEY_SNOOZE_SEC;
+          setCurveMode(d.CURVE_MODE);
+          setChargeMode(d.CHARGE_MODE);
+          setCurrUnitOvr(d.CURR_UNIT_OVR);
+          setCurrSignOvr(d.CURR_SIGN_OVR);
+          $id('keySnoozeToggle').checked = d.KEY_SNOOZE !== '0';
+          $id('rapidShutdownToggle').checked = d.RAPID_SHUTDOWN !== '0';
+          $id('irCompToggle').checked = d.IR_COMP_MODE !== '0';
+          $id('autoMaxToggle').checked = d.AUTO_MAX_LEARN !== '0';
+          $id('autoMinToggle').checked = d.AUTO_MIN_LEARN !== '0';
+          $id('bbAutoApplyToggle').checked = d.BB_AUTO_APPLY === '1';
+          $id('tempCompToggle').checked = d.TEMP_COMP !== '0';
+          $id('reboundToggle').checked = d.ALLOW_REBOUND !== '0';
+          $id('batLogToggle').checked = d.BATLOG === '1';
+          $id('expertToggle').checked = linkMode === 0;
+          setDisplay($id('expertInputs'), linkMode === 0 ? 'block' : 'none');
+          updateLinkPreview();
+          highlightScene();
+          initialized = true;
+        } else if (!expertDirty && linkMode === 0) {
+          $id('expertToggle').checked = true;
+          setDisplay($id('expertInputs'), 'block');
+        }
+      } catch (e) {
+        if (e.message === 'NO_KSU') {
+          $id('envBanner').classList.add('show');
+          setText($id('serviceText'), '预览模式');
+        } else {
+          showToast('异常：' + e.message);
+        }
+      } finally {
+        inFlight.status = Math.max(0, inFlight.status - 1);
+      }
+    }
+
+    async function refreshAll(forceFill, btn) {
+      const run = async () => {
+        if (!hasKsu()) {
+          await loadStatus(forceFill);
+          return;
+        }
+        const tasks = [loadStatus(forceFill)];
+        if (activeTab === 'home' || forceFill) tasks.push(loadEvents());
+        if (activeTab === 'archive' || archiveLoaded) {
+          tasks.push(loadHistory(), loadBlackboxEvents());
+        }
+        await Promise.all(tasks);
+      };
+      return btn ? withBtnLoading(btn, run) : run();
+    }
+
+    async function calibrateFull(btn) {
+      return withBtnLoading(btn, async () => {
+        try {
+          const res = await execShell('sh "' + HELPER + '" calibrate_full');
+          const msg = (res.stdout || res.stderr || '').trim();
+          showToast(msg || '校准完成');
+          if (res.errno === 0) {
+            invalidateCrossTabCache();
+            refreshAll(true);
+          }
+        } catch (e) {
+          showToast(e.message === 'NO_KSU' ? '请在 KernelSU WebUI 中使用' : '校准失败：' + e.message);
+        }
+      });
+    }
+
+    async function saveConfig(btn) {
+      flushSvRaf();
+      const svV = parseFloat($id('svInput').value);
+      const maxV = parseFloat($id('maxVInput').value);
+      const offT = parseInt($id('offTimeInput').value, 10);
+      const batLog = $id('batLogToggle').checked ? 1 : 0;
+      const allowReb = $id('reboundToggle').checked ? 1 : 0;
+      const irComp = $id('irCompToggle').checked ? 1 : 0;
+      const autoMax = $id('autoMaxToggle').checked ? 1 : 0;
+      const autoMin = $id('autoMinToggle').checked ? 1 : 0;
+      const bbAuto = $id('bbAutoApplyToggle').checked ? 1 : 0;
+      const rapidSd = $id('rapidShutdownToggle').checked ? 1 : 0;
+      const tempComp = $id('tempCompToggle').checked ? 1 : 0;
+      const keySnooze = $id('keySnoozeToggle').checked ? 1 : 0;
+      const keySnoozeSec = parseInt($id('keySnoozeSecInput').value, 10);
+      const confirmN = parseInt($id('confirmInput').value, 10);
+      const timeSec = parseInt($id('timeInput').value, 10);
+      const scrOffSec = parseInt($id('screenOffInput').value, 10);
+      const pollStep = parseInt($id('pollStepInput').value, 10);
+      const graceSec = parseInt($id('graceInput').value, 10);
+      const expert = $id('expertToggle').checked;
+
+      if (!isFinite(maxV) || maxV < 3.90 || maxV > 4.65) return showToast('满电电压须在 3.90V~4.65V');
+      if (!isFinite(svV) || svV < 2.85 || svV > 3.60) return showToast('自动关机红线须在 2.85V~3.60V');
+      if (!isFinite(offT) || offT < 10 || offT > 600) return showToast('关机倒计时须在 10~600 秒');
+      if (!isFinite(keySnoozeSec) || keySnoozeSec < 30 || keySnoozeSec > 600) return showToast('按键续命时长须在 30~600 秒');
+      if (!isFinite(confirmN) || confirmN < 1 || confirmN > 5) return showToast('确认次数须在 1~5');
+      if (!isFinite(timeSec) || timeSec < 5 || timeSec > 60) return showToast('亮屏周期须在 5~60 秒');
+      if (!isFinite(scrOffSec) || scrOffSec < 10 || scrOffSec > 300) return showToast('息屏休眠须在 10~300 秒');
+      if (!isFinite(pollStep) || pollStep < 1 || pollStep > 10) return showToast('响应步长须在 1~10 秒');
+      if (!isFinite(graceSec) || graceSec < 0 || graceSec > 600) return showToast('开机保护期须在 0~600 秒');
+
+      const svUv = Math.round(svV * 1000000);
+      let cmd = 'sh "' + HELPER + '" set'
+        + ' MAX_V=' + Math.round(maxV * 1000000)
+        + ' SHUTDOWN_V=' + svUv
+        + ' off_time=' + offT
+        + ' BATLOG=' + batLog
+        + ' CURVE_MODE=' + curveMode
+        + ' CHARGE_MODE=' + chargeMode
+        + ' ALLOW_REBOUND=' + allowReb
+        + ' IR_COMP_MODE=' + irComp
+        + ' AUTO_MAX_LEARN=' + autoMax
+        + ' AUTO_MIN_LEARN=' + autoMin
+        + ' BB_AUTO_APPLY=' + bbAuto
+        + ' RAPID_SHUTDOWN=' + rapidSd
+        + ' TEMP_COMP=' + tempComp
+        + ' CURR_UNIT_OVR=' + currUnitOvr
+        + ' CURR_SIGN_OVR=' + currSignOvr
+        + ' SHUTDOWN_CONFIRM=' + confirmN
+        + ' TIME=' + timeSec
+        + ' SCREEN_OFF_TIME=' + scrOffSec
+        + ' USB_POLL_STEP=' + pollStep
+        + ' BOOT_GRACE_SEC=' + graceSec
+        + ' KEY_SNOOZE=' + keySnooze
+        + ' KEY_SNOOZE_SEC=' + keySnoozeSec;
+
+      if (expert) {
+        const minV = parseFloat($id('minVInput').value);
+        const lMinV = parseFloat($id('lowMinInput').value);
+        const lMaxV = parseFloat($id('lowMaxInput').value);
+        if (!isFinite(minV) || minV < 2.85 || minV > 3.60) return showToast('空电电压须在 2.85V~3.60V');
+        if (!isFinite(lMinV) || lMinV < 2.85 || lMinV > 3.70) return showToast('低电提醒下限超出范围');
+        if (!isFinite(lMaxV) || lMaxV < 2.90 || lMaxV > 3.80) return showToast('低电提醒上限超出范围');
+        if (lMaxV <= lMinV) return showToast('低电提醒上限必须大于下限');
+        cmd += ' LINK_MODE=0'
+          + ' MIN_V=' + Math.round(minV * 1000000)
+          + ' LOW_MIN=' + Math.round(lMinV * 1000000)
+          + ' LOW_MAX=' + Math.round(lMaxV * 1000000);
+      } else {
+        cmd += ' LINK_MODE=1';
+      }
+
+      return withBtnLoading(btn, async () => {
+        try {
+          const res = await execShell(cmd);
+          const msg = (res.stdout || res.stderr || '').trim();
+          if (res.errno === 0) {
+            expertDirty = false;
+            invalidateCrossTabCache();
+            syncSvUI(svUv, false);
+            highlightScene();
+            showToast(msg || '保存成功并秒级生效');
+            setTimeout(() => loadStatus(false), 400);
+          } else {
+            showToast(msg || '保存失败');
+          }
+        } catch (e) {
+          showToast(e.message === 'NO_KSU' ? '请在 KernelSU WebUI 中使用' : '保存异常：' + e.message);
+        }
+      });
+    }
+
+    let actionLockUntil = 0;
+    async function runAction(act, btn) {
+      const nowTs = Date.now();
+      if (nowTs < actionLockUntil) { showToast('操作执行中，请稍候…'); return; }
+      actionLockUntil = nowTs + 1500;
+      return withBtnLoading(btn, async () => {
+        try {
+          const res = await execShell('sh "' + HELPER + '" ' + act);
+          const msg = (res.stdout || res.stderr || '').trim();
+          showToast(msg || '操作完成');
+          invalidateCrossTabCache();
+          setTimeout(() => refreshAll(act === 'reset_learned'), 500);
+        } catch (e) {
+          showToast(e.message === 'NO_KSU' ? '请在 KernelSU WebUI 中使用' : '执行失败：' + e.message);
+        }
+      });
+    }
+
+    async function exportDiagnostics(btn) {
+      if (!hasKsu()) {
+        showToast('请在 KernelSU WebUI 中使用');
+        return;
+      }
+      const P = HELPER.slice(0, HELPER.lastIndexOf('/'));
+      const cmd = 'sh -c "{'
+        + " echo '===== config.conf ====='; cat " + P + "/config.conf; echo;"
+        + " echo '===== learned.conf ====='; cat " + P + "/learned.conf 2>/dev/null; echo;"
+        + " echo '===== history.csv 尾60 ====='; tail -n 60 " + P + "/history.csv 2>/dev/null; echo;"
+        + " echo '===== blackbox_events.csv 尾20 ====='; tail -n 20 " + P + "/blackbox_events.csv 2>/dev/null; echo;"
+        + " echo '===== events.log 尾40 ====='; tail -n 40 " + P + "/events.log 2>/dev/null; echo;"
+        + " echo '===== curve.conf ====='; cat " + P + "/curve.conf 2>/dev/null; echo;"
+        + " echo '===== .last_exit ====='; cat " + P + "/.last_exit 2>/dev/null; echo;"
+        + " echo '===== .runtime_state ====='; cat " + P + "/.runtime_state 2>/dev/null;"
+        + ' }"';
+      showToast('正在收集诊断数据...');
+      return withBtnLoading(btn, async () => {
+        try {
+          const res = await execShell(cmd, 15000);
+          const now = new Date();
+          const p2 = n => String(n).padStart(2, '0');
+          const stamp = now.getFullYear() + p2(now.getMonth() + 1) + p2(now.getDate())
+            + '_' + p2(now.getHours()) + p2(now.getMinutes()) + p2(now.getSeconds());
+          const text = (res.stdout || '') + (res.stderr ? '\n[stderr]\n' + res.stderr : '');
+          const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'voltage_battery_sim_diag_' + stamp + '.txt';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+          showToast(res.errno === 0 ? '诊断数据已导出' : '命令返回非零，仍已导出');
+        } catch (e) {
+          showToast(e.message === 'NO_KSU' ? '请在 KernelSU WebUI 中使用' : '导出失败：' + e.message);
+        }
+      });
+    }
+
+    async function resetDefaults(btn) {
+      return withBtnLoading(btn, async () => {
+        try {
+          const res = await execShell('sh "' + HELPER + '" reset');
+          const msg = (res.stdout || res.stderr || '').trim();
+          showToast(msg || '已恢复默认');
+          invalidateCrossTabCache();
+          refreshAll(true);
+        } catch (e) {
+          showToast(e.message === 'NO_KSU' ? '请在 KernelSU WebUI 中使用' : '重置失败：' + e.message);
+        }
+      });
+    }
+
+    // ---- 智能链式轮询：按页按可见性调度，防重叠堆积 ----
+    function clearLoops() {
+      clearTimeout(statusTimer); statusTimer = null;
+      clearTimeout(eventsTimer); eventsTimer = null;
+      clearTimeout(archiveTimer); archiveTimer = null;
+    }
+
+    function scheduleStatusLoop() {
+      clearTimeout(statusTimer);
+      if (document.hidden || !hasKsu()) return;
+      const delay = activeTab === 'settings' ? 12000 : 4000;
+      statusTimer = setTimeout(async () => {
+        if (!document.hidden && hasKsu()) {
+          const editingInput = activeTab === 'settings' && (isDraggingRange || (document.activeElement && document.activeElement.tagName === 'INPUT'));
+          if (!editingInput) await loadStatus(false);
+        }
+        scheduleStatusLoop();
+      }, delay);
+    }
+
+    function scheduleEventsLoop() {
+      clearTimeout(eventsTimer);
+      if (document.hidden || !hasKsu() || activeTab !== 'home') return;
+      eventsTimer = setTimeout(async () => {
+        if (!document.hidden && hasKsu() && activeTab === 'home') {
+          await loadEvents();
+        }
+        scheduleEventsLoop();
+      }, 30000);
+    }
+
+    function scheduleArchiveLoop() {
+      clearTimeout(archiveTimer);
+      if (document.hidden || !hasKsu() || activeTab !== 'archive') return;
+      archiveTimer = setTimeout(async () => {
+        if (!document.hidden && hasKsu() && activeTab === 'archive') {
+          await Promise.all([loadHistory(), loadBlackboxEvents()]);
+        }
+        scheduleArchiveLoop();
+      }, 60000);
+    }
+
+    function rescheduleLoops() {
+      clearLoops();
+      if (document.hidden || !hasKsu()) return;
+      scheduleStatusLoop();
+      scheduleEventsLoop();
+      scheduleArchiveLoop();
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        clearLoops();
+      } else if (hasKsu()) {
+        refreshAll(false);
+        rescheduleLoops();
+      }
+    });
+
+    updateRangeTrack(currentSvUv);
+    updateLinkPreview();
+    refreshAll(true).finally(() => rescheduleLoops());
+  </script>
+</body>
+</html>

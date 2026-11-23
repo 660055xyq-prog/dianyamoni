@@ -1,0 +1,17 @@
+[package]
+name = "vbat_sim"
+version = "6.1.0"
+edition = "2021"
+description = "电压电量模拟服务 v6.1 Rust 重构 (KernelSU 模块，aarch64 musl 全静态单二进制)"
+authors = ["影儿"]
+license = "MIT"
+
+[dependencies]
+libc = "0.2"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

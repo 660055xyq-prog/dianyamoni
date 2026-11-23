@@ -1,0 +1,6 @@
+id=voltage_battery_sim
+name=电压电量模拟服务
+version=v6.1
+versionCode=17
+author=影儿
+description=Rust静态单二进制+琪露诺主题WebUI+极速断点校准+线性温补迟滞+倒计时自愈 [红线: 3.20V | 范围: 3.18~4.45V]
